@@ -20,6 +20,9 @@ find_package(OpenGL REQUIRED)
 set(SOURCES 
     src/main.cpp 
     src/glad.c
+    src/player.cpp
+    src/field.cpp
+    src/stadium.cpp
 )
 
 # 6. Criar o executável
