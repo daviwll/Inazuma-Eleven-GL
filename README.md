@@ -52,6 +52,7 @@ make clean
 - **OpenGL 3.3 (Compatibilidade)**
 - **GLFW 3**
 - **GLAD** (Carregador de extensões OpenGL)
+- **stb_image** (carregamento de PNG com alpha)
 
 ## ⚽ Funcionalidades Atuais
 
@@ -60,3 +61,13 @@ make clean
 - IA ofensiva: Aliados avançam e buscam espaços vazios para receber passes.
 - Sistema de colisão e roubo de bola preciso.
 - Placar funcional e estádio renderizado.
+- Torcida com cheerleaders em PNG nas arquibancadas.
+- Animação de celebração da torcida quando sai gol.
+
+## 📁 Assets necessários
+
+O jogo espera estes arquivos em `assets/`:
+
+- `assets/removedbg.png`
+- `assets/removedbg2.png`
+- `assets/removedbg3.png`

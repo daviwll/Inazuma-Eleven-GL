@@ -11,7 +11,7 @@ struct Score {
     int right;
 };
 
-void updateBall(Ball& ball, Score& score);
+int updateBall(Ball& ball, Score& score);
 
 void updateTeam(
     std::vector<Player>& team,
