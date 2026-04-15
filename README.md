@@ -32,7 +32,7 @@ make
 Após compilar, rode o executável gerado:
 
 ```bash
-./RonaldinhoSoccer
+./InazumaElevenGL
 ```
 
 ## 🛠️ Tecnologias Utilizadas
