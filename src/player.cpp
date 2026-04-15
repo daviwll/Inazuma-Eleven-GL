@@ -9,13 +9,13 @@ Player::Player(float startX, float startY, float startSpeed, int startSide, Play
       facingX(startSide), facingY(0.0f), speed(startSpeed), side(startSide), 
       role(role), is_targeting_ball(false), stunTimer(0.0f), kickPower(0.0f) {}
 
-void Player::moveTowards(float targetX, float targetY, float currentSpeed) {
+void Player::moveTowards(float targetX, float targetY, float currentSpeed, float deltaTime) {
     float dx = targetX - x;
     float dy = targetY - y;
     float mag = std::sqrt(dx*dx + dy*dy);
     if (mag > 0.005f) {
-        x += (dx / mag) * currentSpeed;
-        y += (dy / mag) * currentSpeed;
+        x += (dx / mag) * currentSpeed * deltaTime;
+        y += (dy / mag) * currentSpeed * deltaTime;
         facingX = dx / mag;
         facingY = dy / mag;
     }
@@ -31,7 +31,7 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
     if (role == PlayerRole::GOALKEEPER) {
         float targetY = std::max(-GOAL_HALF_WIDTH, std::min(GOAL_HALF_WIDTH, ballY));
         float targetX = (side == -1) ? -FIELD_BOUNDARY_X : FIELD_BOUNDARY_X;
-        moveTowards(targetX, targetY, currentSpeed);
+        moveTowards(targetX, targetY, currentSpeed, deltaTime);
         return;
     }
 
@@ -88,12 +88,12 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
             }
         }
 
-        moveTowards(targetX, targetY, currentSpeed * 0.95f);
+        moveTowards(targetX, targetY, currentSpeed * 0.95f, deltaTime);
     } 
     else {
         // TIME ADVERSÁRIO COM A BOLA
         if (is_targeting_ball) {
-            moveTowards(ballX, ballY, currentSpeed);
+            moveTowards(ballX, ballY, currentSpeed, deltaTime);
         } 
         else {
             // Marcação com distanciamento
@@ -107,7 +107,7 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
                 if(d2 < 0.0064f) { targetY += (y > mate.y ? 0.04f : -0.04f); }
             }
 
-            moveTowards(targetX, targetY, currentSpeed * 0.75f);
+            moveTowards(targetX, targetY, currentSpeed * 0.75f, deltaTime);
         }
     }
 }
