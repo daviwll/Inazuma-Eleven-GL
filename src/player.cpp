@@ -58,29 +58,25 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
 
     float areaLimitX = FIELD_BOUNDARY_X - PENALTY_AREA_WIDTH;
 
-    // New logic: if ball is in goalkeeper's area, and we are the defenders (ball in our area), 
-    // we might want to stay away if the GK is handling it, OR if we are the attackers, 
-    // the user asked "os outros jogadores adversário se afastarem" (the opponents of the goalkeeper owner).
-    // So if ball is in penalty area of side X, players of side -X should move away.
-    bool ballInLeftArea = (ballX < -areaLimitX && std::abs(ballY) < PENALTY_AREA_HEIGHT);
-    bool ballInRightArea = (ballX > areaLimitX && std::abs(ballY) < PENALTY_AREA_HEIGHT);
+    // Se o goleiro está segurando a bola, os adversários devem se afastar da área
+    bool isGkHoldingBall = (ballOwner != nullptr && ballOwner->role == PlayerRole::GOALKEEPER);
     
     bool shouldMoveAway = false;
-    float awayDirX = 0, awayDirY = 0;
-
-    if (ballInLeftArea && side == 1) { // Right team players (adversaries of left GK)
+    if (isGkHoldingBall && ballOwner->side != side) {
         shouldMoveAway = true;
-        awayDirX = 1.0f; // Move right
-    } else if (ballInRightArea && side == -1) { // Left team players (adversaries of right GK)
-        shouldMoveAway = true;
-        awayDirX = -1.0f; // Move left
     }
 
     if (shouldMoveAway) {
-        float targetX = x + awayDirX * 0.2f;
+        // Define um alvo fixo logo fora da área penal para evitar movimento infinito
+        float targetX = (side == 1) ? -areaLimitX + 0.2f : areaLimitX - 0.2f;
         float targetY = y;
-        moveTowards(targetX, targetY, currentSpeed * 0.5f, deltaTime);
-        return;
+        
+        // Só se move para se afastar se estiver muito perto ou dentro da área
+        bool tooClose = (side == 1 && x < targetX) || (side == -1 && x > targetX);
+        if (tooClose) {
+            moveTowards(targetX, targetY, currentSpeed * 0.5f, deltaTime);
+            return;
+        }
     }
 
     if (is_team_possessing) {
