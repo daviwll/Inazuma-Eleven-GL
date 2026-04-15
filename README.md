@@ -21,7 +21,7 @@ sudo apt install build-essential libglfw3-dev libgl1-mesa-dev
 
 ### Compilação
 
-Para compilar o projeto, basta usar o `Makefile` incluído:
+Para compilar o projeto, use o `Makefile` da raiz:
 
 ```bash
 make
@@ -34,6 +34,17 @@ Após compilar, rode o executável gerado:
 ```bash
 ./InazumaElevenGL
 ```
+
+### Limpar build
+
+```bash
+make clean
+```
+
+### Observação
+
+- O binário `./RonaldinhoSoccer` é legado e não faz parte do fluxo atual.
+- O projeto usa somente `make` como fluxo de build.
 
 ## 🛠️ Tecnologias Utilizadas
 
