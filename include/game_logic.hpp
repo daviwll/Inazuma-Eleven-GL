@@ -11,7 +11,13 @@ struct Score {
     int right;
 };
 
-int updateBall(Ball& ball, Score& score);
+struct GameState {
+    float kickoffTimer;
+};
+
+void resetGame(Ball& ball, std::vector<Player>& team1, std::vector<Player>& team2, GameState& gameState, int scoringTeamSide);
+
+int updateBall(Ball& ball, Score& score, std::vector<Player>& team1, std::vector<Player>& team2, GameState& gameState);
 
 void updateTeam(
     std::vector<Player>& team,
@@ -19,7 +25,8 @@ void updateTeam(
     Ball& ball,
     bool isUserTeam,
     float deltaTime,
-    const InputState& inputState
+    const InputState& inputState,
+    const GameState& gameState
 );
 
 #endif

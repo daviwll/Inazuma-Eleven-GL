@@ -8,8 +8,10 @@ struct InputState {
     float axisY;
     bool spacePressed;
     bool spaceWasPressed;
+    float mouseX;
+    float mouseY;
 };
 
-void processInput(GLFWwindow* window, InputState& inputState);
+void processInput(GLFWwindow* window, InputState& inputState, bool allowControls);
 
 #endif
