@@ -90,6 +90,7 @@ int runGame()
         glfwPollEvents();
     }
     stadium.shutdown();
+    glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }

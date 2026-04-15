@@ -29,9 +29,57 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
     float currentSpeed = speed * ((stunTimer > 0) ? 0.3f : 1.0f);
 
     if (role == PlayerRole::GOALKEEPER) {
-        float targetY = std::max(-GOAL_HALF_WIDTH, std::min(GOAL_HALF_WIDTH, ballY));
-        float targetX = (side == -1) ? -FIELD_BOUNDARY_X : FIELD_BOUNDARY_X;
+        float areaLimitX = FIELD_BOUNDARY_X - PENALTY_AREA_WIDTH;
+        bool isBallInArea = false;
+        if (side == -1) { // Left team
+            isBallInArea = (ballX < -areaLimitX && std::abs(ballY) < PENALTY_AREA_HEIGHT);
+        } else { // Right team
+            isBallInArea = (ballX > areaLimitX && std::abs(ballY) < PENALTY_AREA_HEIGHT);
+        }
+
+        float targetX, targetY;
+        if (isBallInArea) {
+            targetX = ballX;
+            targetY = ballY;
+            // Limit goalkeeper within his penalty area
+            if (side == -1) {
+                targetX = std::max(-FIELD_BOUNDARY_X, std::min(-areaLimitX, targetX));
+            } else {
+                targetX = std::min(FIELD_BOUNDARY_X, std::max(areaLimitX, targetX));
+            }
+            targetY = std::max(-PENALTY_AREA_HEIGHT, std::min(PENALTY_AREA_HEIGHT, targetY));
+        } else {
+            targetX = (side == -1) ? -FIELD_BOUNDARY_X : FIELD_BOUNDARY_X;
+            targetY = std::max(-GOAL_HALF_WIDTH, std::min(GOAL_HALF_WIDTH, ballY));
+        }
         moveTowards(targetX, targetY, currentSpeed, deltaTime);
+        return;
+    }
+
+    float areaLimitX = FIELD_BOUNDARY_X - PENALTY_AREA_WIDTH;
+
+    // New logic: if ball is in goalkeeper's area, and we are the defenders (ball in our area), 
+    // we might want to stay away if the GK is handling it, OR if we are the attackers, 
+    // the user asked "os outros jogadores adversário se afastarem" (the opponents of the goalkeeper owner).
+    // So if ball is in penalty area of side X, players of side -X should move away.
+    bool ballInLeftArea = (ballX < -areaLimitX && std::abs(ballY) < PENALTY_AREA_HEIGHT);
+    bool ballInRightArea = (ballX > areaLimitX && std::abs(ballY) < PENALTY_AREA_HEIGHT);
+    
+    bool shouldMoveAway = false;
+    float awayDirX = 0, awayDirY = 0;
+
+    if (ballInLeftArea && side == 1) { // Right team players (adversaries of left GK)
+        shouldMoveAway = true;
+        awayDirX = 1.0f; // Move right
+    } else if (ballInRightArea && side == -1) { // Left team players (adversaries of right GK)
+        shouldMoveAway = true;
+        awayDirX = -1.0f; // Move left
+    }
+
+    if (shouldMoveAway) {
+        float targetX = x + awayDirX * 0.2f;
+        float targetY = y;
+        moveTowards(targetX, targetY, currentSpeed * 0.5f, deltaTime);
         return;
     }
 
