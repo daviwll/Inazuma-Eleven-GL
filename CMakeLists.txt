@@ -19,6 +19,9 @@ find_package(OpenGL REQUIRED)
 # Importante: inclua o glad.c aqui para ele ser compilado junto!
 set(SOURCES 
     src/main.cpp 
+    src/game.cpp
+    src/game_logic.cpp
+    src/input.cpp
     src/glad.c
     src/player.cpp
     src/field.cpp
@@ -38,4 +41,6 @@ target_link_libraries(${PROJECT_NAME}
 
 # 8. (Opcional) Copiar os assets para a pasta de build
 # Isso garante que seus sons e imagens estejam perto do executável
-file(COPY assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+    file(COPY assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endif()
