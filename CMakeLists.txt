@@ -22,6 +22,7 @@ set(SOURCES
     src/game.cpp
     src/game_logic.cpp
     src/input.cpp
+    src/stb_image_impl.cpp
     src/glad.c
     src/player.cpp
     src/field.cpp

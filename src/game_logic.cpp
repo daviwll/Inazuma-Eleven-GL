@@ -5,7 +5,7 @@
 #include <cmath>
 #include <cstdlib>
 
-void updateBall(Ball& ball, Score& score) {
+int updateBall(Ball& ball, Score& score) {
     using namespace Constants;
 
     if (ball.owner) {
@@ -13,7 +13,7 @@ void updateBall(Ball& ball, Score& score) {
         ball.y = ball.owner->y + (ball.owner->facingY * 0.035f);
         ball.dx = 0.0f;
         ball.dy = 0.0f;
-        return;
+        return 0;
     }
 
     ball.x += ball.dx;
@@ -31,15 +31,23 @@ void updateBall(Ball& ball, Score& score) {
         } else {
             if (ball.x > 0.0f) {
                 score.left++;
+                ball.x = 0.0f;
+                ball.y = 0.0f;
+                ball.dx = 0.0f;
+                ball.dy = 0.0f;
+                return -1;
             } else {
                 score.right++;
+                ball.x = 0.0f;
+                ball.y = 0.0f;
+                ball.dx = 0.0f;
+                ball.dy = 0.0f;
+                return 1;
             }
-            ball.x = 0.0f;
-            ball.y = 0.0f;
-            ball.dx = 0.0f;
-            ball.dy = 0.0f;
         }
     }
+
+    return 0;
 }
 
 void updateTeam(

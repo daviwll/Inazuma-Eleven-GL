@@ -72,11 +72,16 @@ int runGame() {
         float currentFrameTime = static_cast<float>(glfwGetTime());
         float deltaTime = currentFrameTime - lastFrameTime;
         lastFrameTime = currentFrameTime;
+        stadium.update(deltaTime);
 
         glClear(GL_COLOR_BUFFER_BIT);
 
         processInput(window, inputState);
-        updateBall(ball, score);
+        const int scorerSide = updateBall(ball, score);
+        if (scorerSide != 0) {
+            stadium.triggerCrowdCelebration(scorerSide);
+        }
+
         updateTeam(team1, team2, ball, true, deltaTime, inputState);
         updateTeam(team2, team1, ball, false, deltaTime, inputState);
 
@@ -104,6 +109,7 @@ int runGame() {
         glfwPollEvents();
     }
 
+    stadium.shutdown();
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;

@@ -2,7 +2,205 @@
 #include "constants.hpp"
 #include <glad/glad.h>
 
+#include "stb_image.h"
+
+#include <array>
+#include <cmath>
+#include <cstdio>
+#include <filesystem>
+#include <string>
+#include <unistd.h>
+
+namespace {
+GLuint loadTextureFromPng(const char* path) {
+    int width = 0;
+    int height = 0;
+    int channels = 0;
+
+    stbi_set_flip_vertically_on_load(1);
+    unsigned char* pixels = stbi_load(path, &width, &height, &channels, STBI_rgb_alpha);
+    if (!pixels) {
+        return 0;
+    }
+
+    GLuint textureId = 0;
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    stbi_image_free(pixels);
+    return textureId;
+}
+
+std::vector<std::string> candidateBaseDirs() {
+    std::vector<std::string> dirs = {
+        "assets/",
+        "../assets/",
+        "../../assets/",
+        "../../../assets/"
+    };
+
+    char exePath[4096] = {0};
+    ssize_t len = readlink("/proc/self/exe", exePath, sizeof(exePath) - 1);
+    if (len > 0) {
+        std::filesystem::path exeDir = std::filesystem::path(std::string(exePath, static_cast<size_t>(len))).parent_path();
+        dirs.push_back((exeDir / "assets").string() + "/");
+        dirs.push_back((exeDir / "../assets").string() + "/");
+    }
+
+    return dirs;
+}
+
+void renderTexturedQuad(GLuint textureId, float xMin, float xMax, float yMin, float yMax) {
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex2f(xMin, yMin);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex2f(xMax, yMin);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex2f(xMax, yMax);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex2f(xMin, yMax);
+    glEnd();
+}
+}
+
+Stadium::Stadium() : crowdReady(false), celebrationTimer(0.0f), animationClock(0.0f), celebrationTeamSide(0) {}
+
+Stadium::~Stadium() {
+    shutdown();
+}
+
+void Stadium::shutdown() {
+    if (!crowdTextures.empty()) {
+        glDeleteTextures(static_cast<GLsizei>(crowdTextures.size()), crowdTextures.data());
+        crowdTextures.clear();
+    }
+}
+
+void Stadium::update(float deltaTime) {
+    animationClock += deltaTime;
+    if (celebrationTimer > 0.0f) {
+        celebrationTimer -= deltaTime;
+        if (celebrationTimer <= 0.0f) {
+            celebrationTimer = 0.0f;
+            celebrationTeamSide = 0;
+        }
+    }
+}
+
+void Stadium::triggerCrowdCelebration(int teamSide) {
+    celebrationTeamSide = teamSide;
+    celebrationTimer = 1.8f;
+}
+
+void Stadium::initializeCrowd() {
+    if (crowdReady) {
+        return;
+    }
+
+    constexpr std::array<const char*, 3> fileNames = {
+        "removedbg.png",
+        "removedbg2.png",
+        "removedbg3.png"
+    };
+    const std::vector<std::string> baseDirs = candidateBaseDirs();
+
+    for (const char* fileName : fileNames) {
+        for (const std::string& baseDir : baseDirs) {
+            std::string fullPath = baseDir + fileName;
+            GLuint textureId = loadTextureFromPng(fullPath.c_str());
+            if (textureId != 0U) {
+                crowdTextures.push_back(textureId);
+                break;
+            }
+        }
+    }
+
+    if (crowdTextures.empty()) {
+        std::fprintf(stderr, "[Stadium] Crowd textures not found. Expected files in assets/: removedbg.png, removedbg2.png, removedbg3.png\n");
+    } else {
+        std::fprintf(stderr, "[Stadium] Loaded %zu crowd textures.\n", crowdTextures.size());
+    }
+
+    crowdReady = true;
+}
+
+void Stadium::renderCrowdBand(float yMin, float yMax, bool mirrorY) {
+    if (crowdTextures.empty()) {
+        return;
+    }
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_TEXTURE_2D);
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    const int crowdCount = 56;
+    const float slotWidth = 2.0f / static_cast<float>(crowdCount);
+    const float baseHeight = yMax - yMin;
+
+    for (int i = 0; i < crowdCount; ++i) {
+        GLuint textureId = crowdTextures[static_cast<size_t>(i) % crowdTextures.size()];
+        float jitter = slotWidth * ((i % 5 == 0) ? -0.18f : ((i % 5 == 1) ? -0.08f : ((i % 5 == 2) ? 0.0f : ((i % 5 == 3) ? 0.09f : 0.17f))));
+        float xCenter = -1.0f + (slotWidth * (static_cast<float>(i) + 0.5f)) + jitter;
+        float spriteWidth = slotWidth * ((i % 2 == 0) ? 0.72f : 0.60f);
+        float spriteHeight = baseHeight * ((i % 3 == 0) ? 0.42f : 0.34f);
+        float xMin = xCenter - (spriteWidth * 0.5f);
+        float xMax = xCenter + (spriteWidth * 0.5f);
+        float rowOffset = baseHeight * ((i % 4 == 0) ? 0.06f : ((i % 4 == 1) ? 0.16f : ((i % 4 == 2) ? 0.24f : 0.30f)));
+        float spriteMinY = yMin + rowOffset;
+        float spriteMaxY = spriteMinY + spriteHeight;
+
+        float wave = std::sin(animationClock * 7.0f + static_cast<float>(i) * 0.35f);
+        bool topBand = yMin > 0.0f;
+        bool activeBand = (celebrationTeamSide == -1 && topBand) || (celebrationTeamSide == 1 && !topBand);
+
+        if (celebrationTimer > 0.0f && activeBand) {
+            float jump = (0.5f + 0.5f * wave) * (baseHeight * 0.18f);
+            spriteMinY += jump;
+            spriteMaxY += jump;
+            glColor3f(1.0f, 1.0f, 1.0f);
+        } else {
+            float idle = (0.5f + 0.5f * wave) * (baseHeight * 0.03f);
+            spriteMinY += idle;
+            spriteMaxY += idle;
+            glColor3f(0.85f, 0.85f, 0.85f);
+        }
+
+        if (spriteMaxY > yMax) {
+            spriteMaxY = yMax;
+        }
+
+        if (!mirrorY) {
+            renderTexturedQuad(textureId, xMin, xMax, spriteMinY, spriteMaxY);
+        } else {
+            glBindTexture(GL_TEXTURE_2D, textureId);
+            glBegin(GL_QUADS);
+            glTexCoord2f(0.0f, 1.0f);
+            glVertex2f(xMin, spriteMinY);
+            glTexCoord2f(1.0f, 1.0f);
+            glVertex2f(xMax, spriteMinY);
+            glTexCoord2f(1.0f, 0.0f);
+            glVertex2f(xMax, spriteMaxY);
+            glTexCoord2f(0.0f, 0.0f);
+            glVertex2f(xMin, spriteMaxY);
+            glEnd();
+        }
+    }
+
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+}
+
 void Stadium::render() {
+    initializeCrowd();
+
     using namespace Constants;
 
     // Arquibancada Superior
@@ -22,6 +220,8 @@ void Stadium::render() {
         }
     glEnd();
 
+    renderCrowdBand(FIELD_HALF_HEIGHT + 0.02f, 0.98f, false);
+
     // Arquibancada Inferior
     glColor3f(0.4f, 0.4f, 0.4f);
     glBegin(GL_QUADS);
@@ -38,6 +238,8 @@ void Stadium::render() {
             glVertex2f(-1.0f, y); glVertex2f( 1.0f, y);
         }
     glEnd();
+
+    renderCrowdBand(-0.98f, -FIELD_HALF_HEIGHT - 0.02f, true);
 
     // Laterais
     glColor3f(0.35f, 0.35f, 0.35f);
