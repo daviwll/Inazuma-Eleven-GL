@@ -10,13 +10,15 @@
 #include "stadium.hpp"
 #include "player.hpp"
 #include "constants.hpp"
+#include "utils.hpp"
 
 #include <vector>
+#include <string>
 
 int runGame()
 {
     if (!glfwInit()) return -1;
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Inazuma Eleven GL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1600, 900, "Inazuma Eleven GL", NULL, NULL);
     if (!window) { glfwTerminate(); return -1; }
     glfwMakeContextCurrent(window);
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) return -1;
@@ -28,32 +30,109 @@ int runGame()
     Score score{0, 0};
     InputState inputState{0.0f, 0.0f, false, false, 0.0f, 0.0f};
     const float initialPlayerSpeed = 0.2f;
+
+    // Load Sprites
+    unsigned int blueFace = 0, blueBack = 0, blueLeft = 0, blueRight = 0;
+    unsigned int redFace = 0, redBack = 0, redLeft = 0, redRight = 0;
+    unsigned int texGK = 0;
+    std::vector<unsigned int> blueRunFramesRight;
+    std::vector<unsigned int> blueRunFramesLeft;
+    std::vector<unsigned int> redRunFramesRight;
+    std::vector<unsigned int> redRunFramesLeft;
+    
+    std::vector<std::string> baseDirs = candidateBaseDirs();
+    for (const auto& baseDir : baseDirs) {
+        if (blueFace == 0) blueFace = loadTextureFromPng((baseDir + "players_blue/face_blue.png").c_str());
+        if (blueBack == 0) blueBack = loadTextureFromPng((baseDir + "players_blue/back_blue.png").c_str());
+        if (blueLeft == 0) blueLeft = loadTextureFromPng((baseDir + "players_blue/left_blue.png").c_str());
+        if (blueRight == 0) blueRight = loadTextureFromPng((baseDir + "players_blue/right_blue.png").c_str());
+
+        if (redFace == 0) redFace = loadTextureFromPng((baseDir + "players_red/face_Red.png").c_str());
+        if (redBack == 0) redBack = loadTextureFromPng((baseDir + "players_red/back_red.png").c_str());
+        if (redLeft == 0) redLeft = loadTextureFromPng((baseDir + "players_red/left_red.png").c_str());
+        if (redRight == 0) redRight = loadTextureFromPng((baseDir + "players_red/right_red.png").c_str());
+
+        if (texGK == 0) texGK = loadTextureFromPng((baseDir + "removedbg3.png").c_str());
+        
+        if (blueRunFramesRight.empty()) {
+            unsigned int f1 = loadTextureFromPng((baseDir + "players_blue/running/run_blue1.png").c_str());
+            unsigned int f2 = loadTextureFromPng((baseDir + "players_blue/running/run_blue2.png").c_str());
+            unsigned int f3 = loadTextureFromPng((baseDir + "players_blue/running/run_blue3.png").c_str());
+            unsigned int f4 = loadTextureFromPng((baseDir + "players_blue/running/run_blue4.png").c_str());
+            if (f1 && f2 && f3 && f4) {
+                blueRunFramesRight = {f1, f2, f3, f4};
+            }
+        }
+        if (blueRunFramesLeft.empty()) {
+            unsigned int f1 = loadTextureFromPng((baseDir + "players_blue/running/run_blue1_left.png").c_str());
+            unsigned int f2 = loadTextureFromPng((baseDir + "players_blue/running/run_blue2_left.png").c_str());
+            unsigned int f3 = loadTextureFromPng((baseDir + "players_blue/running/run_blue3_left.png").c_str());
+            unsigned int f4 = loadTextureFromPng((baseDir + "players_blue/running/run_blue_left4.png").c_str());
+            if (f1 && f2 && f3 && f4) {
+                blueRunFramesLeft = {f1, f2, f3, f4};
+            }
+        }
+        if (redRunFramesRight.empty()) {
+            unsigned int f1 = loadTextureFromPng((baseDir + "players_red/running/run_red_1.png").c_str());
+            unsigned int f2 = loadTextureFromPng((baseDir + "players_red/running/run_red2.png").c_str());
+            unsigned int f3 = loadTextureFromPng((baseDir + "players_red/running/run_red3.png").c_str());
+            unsigned int f4 = loadTextureFromPng((baseDir + "players_red/running/run_red4.png").c_str());
+            if (f1 && f2 && f3 && f4) {
+                redRunFramesRight = {f1, f2, f3, f4};
+            }
+        }
+        if (redRunFramesLeft.empty()) {
+            unsigned int f2 = loadTextureFromPng((baseDir + "players_red/running/run_red_left2.png").c_str());
+            unsigned int f3 = loadTextureFromPng((baseDir + "players_red/running/run_red_left3.png").c_str());
+            unsigned int f4 = loadTextureFromPng((baseDir + "players_red/running/run_red_left4.png").c_str());
+            if (f2 && f3 && f4) {
+                redRunFramesLeft = {f2, f3, f4};
+            }
+        }
+    }
+
     std::vector<Player> team1;
     std::vector<Player> team2;
 
-    team1.push_back(Player(-FIELD_BOUNDARY_X,  0.00f, initialPlayerSpeed, -1, PlayerRole::GOALKEEPER));
-    team1.push_back(Player(-0.65f,  0.25f, initialPlayerSpeed, -1, PlayerRole::DEFENDER));
-    team1.push_back(Player(-0.65f, -0.25f, initialPlayerSpeed, -1, PlayerRole::DEFENDER));
-    team1.push_back(Player(-0.60f,  0.50f, initialPlayerSpeed, -1, PlayerRole::DEFENDER));
-    team1.push_back(Player(-0.60f, -0.50f, initialPlayerSpeed, -1, PlayerRole::DEFENDER));
-    team1.push_back(Player(-0.35f,  0.00f, initialPlayerSpeed, -1, PlayerRole::MIDFIELDER));
-    team1.push_back(Player(-0.35f,  0.30f, initialPlayerSpeed, -1, PlayerRole::MIDFIELDER));
-    team1.push_back(Player(-0.35f, -0.30f, initialPlayerSpeed, -1, PlayerRole::MIDFIELDER));
-    team1.push_back(Player(-0.10f,  0.00f, initialPlayerSpeed, -1, PlayerRole::ATTACKER));
-    team1.push_back(Player(-0.10f,  0.40f, initialPlayerSpeed, -1, PlayerRole::ATTACKER));
-    team1.push_back(Player(-0.10f, -0.40f, initialPlayerSpeed, -1, PlayerRole::ATTACKER));
+    // Team 1 (Red)
+    team1.push_back(Player(-FIELD_BOUNDARY_X,  0.00f, initialPlayerSpeed, -1, PlayerRole::GOALKEEPER, texGK, texGK, texGK, texGK));
+    team1.push_back(Player(-0.65f,  0.25f, initialPlayerSpeed, -1, PlayerRole::DEFENDER, redFace, redBack, redLeft, redRight));
+    team1.push_back(Player(-0.65f, -0.25f, initialPlayerSpeed, -1, PlayerRole::DEFENDER, redFace, redBack, redLeft, redRight));
+    team1.push_back(Player(-0.60f,  0.50f, initialPlayerSpeed, -1, PlayerRole::DEFENDER, redFace, redBack, redLeft, redRight));
+    team1.push_back(Player(-0.60f, -0.50f, initialPlayerSpeed, -1, PlayerRole::DEFENDER, redFace, redBack, redLeft, redRight));
+    team1.push_back(Player(-0.35f,  0.00f, initialPlayerSpeed, -1, PlayerRole::MIDFIELDER, redFace, redBack, redLeft, redRight));
+    team1.push_back(Player(-0.35f,  0.30f, initialPlayerSpeed, -1, PlayerRole::MIDFIELDER, redFace, redBack, redLeft, redRight));
+    team1.push_back(Player(-0.35f, -0.30f, initialPlayerSpeed, -1, PlayerRole::MIDFIELDER, redFace, redBack, redLeft, redRight));
+    team1.push_back(Player(-0.10f,  0.00f, initialPlayerSpeed, -1, PlayerRole::ATTACKER, redFace, redBack, redLeft, redRight));
+    team1.push_back(Player(-0.10f,  0.40f, initialPlayerSpeed, -1, PlayerRole::ATTACKER, redFace, redBack, redLeft, redRight));
+    team1.push_back(Player(-0.10f, -0.40f, initialPlayerSpeed, -1, PlayerRole::ATTACKER, redFace, redBack, redLeft, redRight));
 
-    team2.push_back(Player( FIELD_BOUNDARY_X,  0.00f, initialPlayerSpeed,  1, PlayerRole::GOALKEEPER));
-    team2.push_back(Player( 0.65f,  0.25f, initialPlayerSpeed,  1, PlayerRole::DEFENDER));
-    team2.push_back(Player( 0.65f, -0.25f, initialPlayerSpeed,  1, PlayerRole::DEFENDER));
-    team2.push_back(Player( 0.60f,  0.50f, initialPlayerSpeed,  1, PlayerRole::DEFENDER));
-    team2.push_back(Player( 0.60f, -0.50f, initialPlayerSpeed,  1, PlayerRole::DEFENDER));
-    team2.push_back(Player( 0.35f,  0.00f, initialPlayerSpeed,  1, PlayerRole::MIDFIELDER));
-    team2.push_back(Player( 0.35f,  0.30f, initialPlayerSpeed,  1, PlayerRole::MIDFIELDER));
-    team2.push_back(Player( 0.35f, -0.30f, initialPlayerSpeed,  1, PlayerRole::MIDFIELDER));
-    team2.push_back(Player( 0.10f,  0.00f, initialPlayerSpeed,  1, PlayerRole::ATTACKER));
-    team2.push_back(Player( 0.10f,  0.40f, initialPlayerSpeed,  1, PlayerRole::ATTACKER));
-    team2.push_back(Player( 0.10f, -0.40f, initialPlayerSpeed,  1, PlayerRole::ATTACKER));
+    for (auto& p : team1) {
+        if (p.role != PlayerRole::GOALKEEPER) {
+            p.runFramesRight = redRunFramesRight;
+            p.runFramesLeft = redRunFramesLeft;
+        }
+    }
+
+    // Team 2 (Blue)
+    team2.push_back(Player( FIELD_BOUNDARY_X,  0.00f, initialPlayerSpeed,  1, PlayerRole::GOALKEEPER, texGK, texGK, texGK, texGK));
+    team2.push_back(Player( 0.65f,  0.25f, initialPlayerSpeed,  1, PlayerRole::DEFENDER, blueFace, blueBack, blueLeft, blueRight));
+    team2.push_back(Player( 0.65f, -0.25f, initialPlayerSpeed,  1, PlayerRole::DEFENDER, blueFace, blueBack, blueLeft, blueRight));
+    team2.push_back(Player( 0.60f,  0.50f, initialPlayerSpeed,  1, PlayerRole::DEFENDER, blueFace, blueBack, blueLeft, blueRight));
+    team2.push_back(Player( 0.60f, -0.50f, initialPlayerSpeed,  1, PlayerRole::DEFENDER, blueFace, blueBack, blueLeft, blueRight));
+    team2.push_back(Player( 0.35f,  0.00f, initialPlayerSpeed,  1, PlayerRole::MIDFIELDER, blueFace, blueBack, blueLeft, blueRight));
+    team2.push_back(Player( 0.35f,  0.30f, initialPlayerSpeed,  1, PlayerRole::MIDFIELDER, blueFace, blueBack, blueLeft, blueRight));
+    team2.push_back(Player( 0.35f, -0.30f, initialPlayerSpeed,  1, PlayerRole::MIDFIELDER, blueFace, blueBack, blueLeft, blueRight));
+    team2.push_back(Player( 0.10f,  0.00f, initialPlayerSpeed,  1, PlayerRole::ATTACKER, blueFace, blueBack, blueLeft, blueRight));
+    team2.push_back(Player( 0.10f,  0.40f, initialPlayerSpeed,  1, PlayerRole::ATTACKER, blueFace, blueBack, blueLeft, blueRight));
+    team2.push_back(Player( 0.10f, -0.40f, initialPlayerSpeed,  1, PlayerRole::ATTACKER, blueFace, blueBack, blueLeft, blueRight));
+
+    for (auto& p : team2) {
+        if (p.role != PlayerRole::GOALKEEPER) {
+            p.runFramesRight = blueRunFramesRight;
+            p.runFramesLeft = blueRunFramesLeft;
+        }
+    }
 
     resetGame(ball, team1, team2, gameState, 1);
 

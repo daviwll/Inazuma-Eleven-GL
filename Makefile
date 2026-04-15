@@ -16,7 +16,8 @@ CPP_SOURCES := \
 	src/player.cpp \
 	src/field.cpp \
 	src/stadium.cpp \
-	src/stb_image_impl.cpp
+	src/stb_image_impl.cpp \
+	src/utils.cpp
 
 C_SOURCES := src/glad.c
 

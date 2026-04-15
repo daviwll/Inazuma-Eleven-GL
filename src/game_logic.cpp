@@ -149,8 +149,10 @@ void updateTeam(
             if (inputState.axisX != 0.0f || inputState.axisY != 0.0f) {
                 team[i].x += inputState.axisX * team[i].speed * speedMult * deltaTime;
                 team[i].y += inputState.axisY * team[i].speed * speedMult * deltaTime;
-                team[i].facingX = inputState.axisX;
-                team[i].facingY = inputState.axisY;
+                if (inputState.axisX != 0.0f) team[i].facingX = inputState.axisX;
+                if (inputState.axisY != 0.0f) team[i].facingY = inputState.axisY;
+                team[i].isMoving = true;
+                team[i].animTimer += deltaTime * 10.0f;
             }
 
             if (team[i].stunTimer > 0.0f) {

@@ -1,13 +1,17 @@
 #include "player.hpp"
 #include "constants.hpp"
+#include "utils.hpp"
 #include <glad/glad.h>
 #include <algorithm>
 #include <cmath>
 
-Player::Player(float startX, float startY, float startSpeed, int startSide, PlayerRole role)
+Player::Player(float startX, float startY, float startSpeed, int startSide, PlayerRole role, 
+               unsigned int texFace, unsigned int texBack, unsigned int texLeft, unsigned int texRight)
     : x(startX), y(startY), startX(startX), startY(startY), 
       facingX(startSide), facingY(0.0f), speed(startSpeed), side(startSide), 
-      role(role), is_targeting_ball(false), stunTimer(0.0f), kickPower(0.0f) {}
+      role(role), is_targeting_ball(false), stunTimer(0.0f), kickPower(0.0f), 
+      texFace(texFace), texBack(texBack), texLeft(texLeft), texRight(texRight),
+      animTimer(0.0f), isMoving(false) {}
 
 void Player::moveTowards(float targetX, float targetY, float currentSpeed, float deltaTime) {
     float dx = targetX - x;
@@ -16,8 +20,9 @@ void Player::moveTowards(float targetX, float targetY, float currentSpeed, float
     if (mag > 0.005f) {
         x += (dx / mag) * currentSpeed * deltaTime;
         y += (dy / mag) * currentSpeed * deltaTime;
-        facingX = dx / mag;
-        facingY = dy / mag;
+        if (std::abs(dx) > 0.001f) facingX = dx / mag;
+        if (std::abs(dy) > 0.001f) facingY = dy / mag;
+        isMoving = true;
     }
 }
 
@@ -25,6 +30,7 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
                     const std::vector<Player>& teammates, const std::vector<Player>& opponents, float deltaTime) {
     using namespace Constants;
     
+    isMoving = false;
     if (stunTimer > 0) stunTimer -= deltaTime;
     float currentSpeed = speed * ((stunTimer > 0) ? 0.3f : 1.0f);
 
@@ -53,6 +59,7 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
             targetY = std::max(-GOAL_HALF_WIDTH, std::min(GOAL_HALF_WIDTH, ballY));
         }
         moveTowards(targetX, targetY, currentSpeed, deltaTime);
+        if (isMoving) animTimer += deltaTime * 10.0f;
         return;
     }
 
@@ -75,12 +82,18 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
         bool tooClose = (side == 1 && x < targetX) || (side == -1 && x > targetX);
         if (tooClose) {
             moveTowards(targetX, targetY, currentSpeed * 0.5f, deltaTime);
+            if (isMoving) animTimer += deltaTime * 10.0f;
             return;
         }
     }
 
     if (is_team_possessing) {
-        if (ballOwner == this) return;
+        if (ballOwner == this) {
+            // Se o jogador tem a bola e não é controlado pelo usuário (IA driblando),
+            // a lógica de drible em game_logic.cpp que define isMoving.
+            // Mas aqui Player::update é chamado para os outros jogadores.
+            return;
+        }
 
         float attackDir = (float)-side; 
         float baseAdvancement = 0.0f;
@@ -154,22 +167,64 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
             moveTowards(targetX, targetY, currentSpeed * 0.75f, deltaTime);
         }
     }
+    if (isMoving) animTimer += deltaTime * 10.0f;
 }
 
 void Player::render() {
-    if (side == -1) {
-        if (role == PlayerRole::GOALKEEPER) glColor3f(1.0f, 0.5f, 0.0f);
-        else glColor3f(1.0f, 0.0f, 0.0f);
-    } else {
-        if (role == PlayerRole::GOALKEEPER) glColor3f(0.0f, 0.5f, 1.0f);
-        else glColor3f(0.0f, 0.0f, 1.0f);
+    unsigned int tId = 0;
+    
+    if (isMoving) {
+        if (facingX > 0 && !runFramesRight.empty()) {
+            int frameIdx = static_cast<int>(animTimer) % runFramesRight.size();
+            tId = runFramesRight[frameIdx];
+        } else if (facingX < 0 && !runFramesLeft.empty()) {
+            int frameIdx = static_cast<int>(animTimer) % runFramesLeft.size();
+            tId = runFramesLeft[frameIdx];
+        } else if (!runFramesRight.empty()) {
+            // Fallback para quando facingX é 0 mas isMoving é true (movimento vertical puro)
+            int frameIdx = static_cast<int>(animTimer) % runFramesRight.size();
+            tId = runFramesRight[frameIdx];
+        }
     }
-    if (stunTimer > 0) glColor3f(0.5f, 0.5f, 0.5f);
+    
+    if (tId == 0) {
+        if (std::abs(facingX) > std::abs(facingY)) {
+            tId = (facingX > 0) ? texRight : texLeft;
+        } else {
+            tId = (facingY > 0) ? texBack : texFace;
+        }
+        if (tId == 0) tId = texFace;
+    }
 
-    glPointSize(role == PlayerRole::GOALKEEPER ? 12.0f : 10.0f); // Reduzido de 18/15
-    glBegin(GL_POINTS);
-        glVertex2d(x, y);
-    glEnd();
+    if (tId != 0) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_TEXTURE_2D);
+        
+        if (stunTimer > 0) glColor3f(0.3f, 0.3f, 0.3f);
+        else glColor3f(1.0f, 1.0f, 1.0f);
+
+        float height = (role == PlayerRole::GOALKEEPER ? 0.10f : 0.08f);
+        float width = height * 0.65f;
+        renderTexturedQuad(tId, x - width/2, x + width/2, y - height/2, y + height/2);
+        
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_BLEND);
+    } else {
+        if (side == -1) {
+            if (role == PlayerRole::GOALKEEPER) glColor3f(1.0f, 0.5f, 0.0f);
+            else glColor3f(1.0f, 0.0f, 0.0f);
+        } else {
+            if (role == PlayerRole::GOALKEEPER) glColor3f(0.0f, 0.5f, 1.0f);
+            else glColor3f(0.0f, 0.0f, 1.0f);
+        }
+        if (stunTimer > 0) glColor3f(0.5f, 0.5f, 0.5f);
+
+        glPointSize(role == PlayerRole::GOALKEEPER ? 12.0f : 10.0f); 
+        glBegin(GL_POINTS);
+            glVertex2d(x, y);
+        glEnd();
+    }
 }
 
 void Player::renderPowerBar() {
