@@ -1,3 +1,0 @@
-/home/davi/Desktop/Inazuma-Eleven-GL/build/CMakeFiles/RonaldinhoSoccer.dir
-/home/davi/Desktop/Inazuma-Eleven-GL/build/CMakeFiles/edit_cache.dir
-/home/davi/Desktop/Inazuma-Eleven-GL/build/CMakeFiles/rebuild_cache.dir

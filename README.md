@@ -1,41 +1,51 @@
 # Inazuma Eleven GL
 
-Small C++/OpenGL arcade soccer prototype inspired by Inazuma Eleven.
+Um simulador de futebol arcade inspirado no clássico Inazuma Eleven, desenvolvido em C++ utilizando OpenGL e GLFW.
 
-## Requirements
+## 🎮 Controles
 
-- CMake 3.10+
-- C++17 compiler (g++/clang++)
-- OpenGL
-- GLFW3 development package
+- **WASD:** Movimenta o jogador portador da bola (ou o mais próximo dela).
+- **ESPAÇO (Segurar):** Carrega a força do chute.
+- **ESPAÇO (Soltar):** Chuta a bola na direção em que o jogador está olhando.
 
-On Ubuntu/Debian, you can install dependencies with:
+## 🚀 Como Rodar
 
-```bash
-sudo apt install build-essential cmake libglfw3-dev libgl1-mesa-dev
-```
+### Pré-requisitos (Linux)
 
-## Build
-
-From the project root:
+Certifique-se de ter as bibliotecas do GLFW e OpenGL instaladas:
 
 ```bash
-cmake -S . -B build-local
-cmake --build build-local
+sudo apt update
+sudo apt install build-essential libglfw3-dev libgl1-mesa-dev
 ```
 
-## Run
+### Compilação
+
+Para compilar o projeto, basta usar o `Makefile` incluído:
 
 ```bash
-./build-local/RonaldinhoSoccer
+make
 ```
 
-## Controls
+### Execução
 
-- `W`, `A`, `S`, `D`: move the selected player (closest to ball)
-- Hold `Space`: charge kick power
-- Release `Space`: shoot
+Após compilar, rode o executável gerado:
 
-## Notes
+```bash
+./InazumaElevenGL
+```
 
-- The `build/` folder in this repository may be machine-specific. If CMake reports cache path mismatches, use a fresh build directory such as `build-local/`.
+## 🛠️ Tecnologias Utilizadas
+
+- **C++17**
+- **OpenGL 3.3 (Compatibilidade)**
+- **GLFW 3**
+- **GLAD** (Carregador de extensões OpenGL)
+
+## ⚽ Funcionalidades Atuais
+
+- Campo ampliado para melhor jogabilidade.
+- Jogadores com tamanhos ajustados para maior fluidez.
+- IA ofensiva: Aliados avançam e buscam espaços vazios para receber passes.
+- Sistema de colisão e roubo de bola preciso.
+- Placar funcional e estádio renderizado.

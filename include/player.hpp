@@ -29,7 +29,7 @@ public:
     void renderPowerBar();
 
 private:
-    void moveTowards(float targetX, float targetY, float currentSpeed);
+    void moveTowards(float targetX, float targetY, float currentSpeed, float deltaTime);
 };
 
 #endif

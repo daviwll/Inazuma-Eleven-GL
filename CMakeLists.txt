@@ -1,6 +1,6 @@
 # 1. Versão mínima do CMake e Nome do Projeto
 cmake_minimum_required(VERSION 3.10)
-project(RonaldinhoSoccer)
+project(InazumaElevenGL)
 
 # 2. Especificar o padrão do C++ (C++17 é ótimo para jogos)
 set(CMAKE_CXX_STANDARD 17)
