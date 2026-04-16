@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include "ball.hpp"
+#include "audio.hpp"
 #include "field.hpp"
 #include "game.hpp"
 #include "game_logic.hpp"
@@ -25,6 +26,7 @@ int runGame()
 
     using namespace Constants;
     Field field; Stadium stadium;
+    AudioPlayer audioPlayer;
     GameState gameState{2.0f};
     Ball ball{0.0f, 0.0f, 0.005f, 0.002f, 0.98f, nullptr};
     Score score{0, 0};
@@ -41,6 +43,29 @@ int runGame()
     std::vector<unsigned int> redRunFramesLeft;
     
     std::vector<std::string> baseDirs = candidateBaseDirs();
+    bool audioStarted = false;
+    std::vector<std::string> kickSoundPaths;
+    for (const auto& baseDir : baseDirs) {
+        kickSoundPaths.push_back(baseDir + "sound/kick.mp3");
+        if (audioPlayer.initLoopingTrack(baseDir + "sound/background-sound.mp3")) {
+            audioStarted = true;
+            break;
+        }
+    }
+
+    if (!audioStarted) {
+        audioPlayer.initLoopingTrack("assets/sound/background-sound.mp3");
+    }
+    kickSoundPaths.push_back("assets/sound/kick.mp3");
+
+    auto onKick = [&audioPlayer, &kickSoundPaths]() {
+        for (const std::string& kickPath : kickSoundPaths) {
+            if (audioPlayer.playOneShot(kickPath)) {
+                break;
+            }
+        }
+    };
+
     for (const auto& baseDir : baseDirs) {
         if (blueFace == 0) blueFace = loadTextureFromPng((baseDir + "players_blue/face_blue.png").c_str());
         if (blueBack == 0) blueBack = loadTextureFromPng((baseDir + "players_blue/back_blue.png").c_str());
@@ -154,8 +179,8 @@ int runGame()
         if (scorerSide != 0) {
             stadium.triggerCrowdCelebration(scorerSide);
         }
-        updateTeam(team1, team2, ball, true, deltaTime, inputState, gameState);
-        updateTeam(team2, team1, ball, false, deltaTime, inputState, gameState);
+        updateTeam(team1, team2, ball, true, deltaTime, inputState, gameState, onKick);
+        updateTeam(team2, team1, ball, false, deltaTime, inputState, gameState, onKick);
 
         stadium.render(); stadium.renderScoreboard(score.left, score.right);
         field.render();
@@ -169,6 +194,7 @@ int runGame()
         glfwPollEvents();
     }
     stadium.shutdown();
+    audioPlayer.shutdown();
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;

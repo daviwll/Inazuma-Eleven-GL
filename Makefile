@@ -13,6 +13,7 @@ CPP_SOURCES := \
 	src/game.cpp \
 	src/game_logic.cpp \
 	src/input.cpp \
+	src/audio.cpp \
 	src/player.cpp \
 	src/field.cpp \
 	src/stadium.cpp \

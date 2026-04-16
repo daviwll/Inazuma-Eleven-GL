@@ -1,6 +1,8 @@
 #include "game_logic.hpp"
 #include "constants.hpp"
 
+#include <functional>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -91,7 +93,8 @@ void updateTeam(
     bool isUserTeam,
     float deltaTime,
     const InputState& inputState,
-    const GameState& gameState
+    const GameState& gameState,
+    const std::function<void()>& onKick
 ) {
     using namespace Constants;
 
@@ -179,6 +182,7 @@ void updateTeam(
                     ball.y += ball.dy * 2.0f;
                     team[i].kickPower = 0.0f;
                     team[i].stunTimer = 0.3f;
+                    onKick();
                 }
             } else {
                 team[i].kickPower = 0.0f;
@@ -232,6 +236,7 @@ void updateTeam(
                     ball.dy = (passDirY / passMag) * passPower;
                     ball.owner = nullptr;
                     team[i].stunTimer = 0.8f;
+                    onKick();
                 } else if (canShoot && (std::rand() % 100) < 5) {
                     float finalPower = 0.015f + (std::rand() % 10) / 1000.0f;
                     ball.dx = (targetGoalX - team[i].x) / distToGoal * finalPower;
@@ -240,6 +245,7 @@ void updateTeam(
                     ball.x += ball.dx * 2.0f;
                     ball.y += ball.dy * 2.0f;
                     team[i].stunTimer = 1.0f;
+                    onKick();
                 } else {
                     float dribbleDirX = targetGoalX - team[i].x;
                     float dribbleDirY = (0.0f - team[i].y) * 0.3f;

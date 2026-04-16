@@ -4,6 +4,8 @@
 #include "ball.hpp"
 #include "input.hpp"
 #include "player.hpp"
+
+#include <functional>
 #include <vector>
 
 struct Score {
@@ -26,7 +28,8 @@ void updateTeam(
     bool isUserTeam,
     float deltaTime,
     const InputState& inputState,
-    const GameState& gameState
+    const GameState& gameState,
+    const std::function<void()>& onKick
 );
 
 #endif
