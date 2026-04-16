@@ -36,7 +36,8 @@ int runGame()
     // Load Sprites
     unsigned int blueFace = 0, blueBack = 0, blueLeft = 0, blueRight = 0;
     unsigned int redFace = 0, redBack = 0, redLeft = 0, redRight = 0;
-    unsigned int texGK = 0;
+    unsigned int texGKBlue = 0;
+    unsigned int texGKRed = 0;
     std::vector<unsigned int> blueRunFramesRight;
     std::vector<unsigned int> blueRunFramesLeft;
     std::vector<unsigned int> redRunFramesRight;
@@ -88,7 +89,8 @@ int runGame()
         if (redLeft == 0) redLeft = loadTextureFromPng((baseDir + "players_red/left_red.png").c_str());
         if (redRight == 0) redRight = loadTextureFromPng((baseDir + "players_red/right_red.png").c_str());
 
-        if (texGK == 0) texGK = loadTextureFromPng((baseDir + "removedbg3.png").c_str());
+        if (texGKBlue == 0) texGKBlue = loadTextureFromPng((baseDir + "players_blue/gk_blue_left.png").c_str());
+        if (texGKRed == 0) texGKRed = loadTextureFromPng((baseDir + "players_red/gk_red_right_1.png").c_str());
         
         if (blueRunFramesRight.empty()) {
             unsigned int f1 = loadTextureFromPng((baseDir + "players_blue/running/run_blue1.png").c_str());
@@ -131,7 +133,7 @@ int runGame()
     std::vector<Player> team2;
 
     // Team 1 (Red)
-    team1.push_back(Player(-FIELD_BOUNDARY_X,  0.00f, initialPlayerSpeed, -1, PlayerRole::GOALKEEPER, texGK, texGK, texGK, texGK));
+    team1.push_back(Player(-FIELD_BOUNDARY_X,  0.00f, initialPlayerSpeed, -1, PlayerRole::GOALKEEPER, texGKRed, texGKRed, texGKRed, texGKRed));
     team1.push_back(Player(-0.65f,  0.25f, initialPlayerSpeed, -1, PlayerRole::DEFENDER, redFace, redBack, redLeft, redRight));
     team1.push_back(Player(-0.65f, -0.25f, initialPlayerSpeed, -1, PlayerRole::DEFENDER, redFace, redBack, redLeft, redRight));
     team1.push_back(Player(-0.60f,  0.50f, initialPlayerSpeed, -1, PlayerRole::DEFENDER, redFace, redBack, redLeft, redRight));
@@ -151,7 +153,7 @@ int runGame()
     }
 
     // Team 2 (Blue)
-    team2.push_back(Player( FIELD_BOUNDARY_X,  0.00f, initialPlayerSpeed,  1, PlayerRole::GOALKEEPER, texGK, texGK, texGK, texGK));
+    team2.push_back(Player( FIELD_BOUNDARY_X,  0.00f, initialPlayerSpeed,  1, PlayerRole::GOALKEEPER, texGKBlue, texGKBlue, texGKBlue, texGKBlue));
     team2.push_back(Player( 0.65f,  0.25f, initialPlayerSpeed,  1, PlayerRole::DEFENDER, blueFace, blueBack, blueLeft, blueRight));
     team2.push_back(Player( 0.65f, -0.25f, initialPlayerSpeed,  1, PlayerRole::DEFENDER, blueFace, blueBack, blueLeft, blueRight));
     team2.push_back(Player( 0.60f,  0.50f, initialPlayerSpeed,  1, PlayerRole::DEFENDER, blueFace, blueBack, blueLeft, blueRight));
