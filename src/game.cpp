@@ -256,6 +256,7 @@ bool kickoffStarted = false;
         field.render();
 
         ball.render();
+        ball.renderHissatsuEffect(ball.chargingPower);
         ball.renderMotionBlur();
         particles.render();
         for(auto& p : team1) { p.render(); p.renderPowerBar(); }
