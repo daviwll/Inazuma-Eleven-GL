@@ -45,8 +45,10 @@ int runGame()
     std::vector<std::string> baseDirs = candidateBaseDirs();
     bool audioStarted = false;
     std::vector<std::string> kickSoundPaths;
+    std::vector<std::string> refereeStartSoundPaths;
     for (const auto& baseDir : baseDirs) {
         kickSoundPaths.push_back(baseDir + "sound/kick.mp3");
+        refereeStartSoundPaths.push_back(baseDir + "sound/referee-start.mp3");
         if (audioPlayer.initLoopingTrack(baseDir + "sound/background-sound.mp3")) {
             audioStarted = true;
             break;
@@ -57,10 +59,19 @@ int runGame()
         audioPlayer.initLoopingTrack("assets/sound/background-sound.mp3");
     }
     kickSoundPaths.push_back("assets/sound/kick.mp3");
+    refereeStartSoundPaths.push_back("assets/sound/referee-start.mp3");
 
     auto onKick = [&audioPlayer, &kickSoundPaths]() {
         for (const std::string& kickPath : kickSoundPaths) {
             if (audioPlayer.playOneShot(kickPath)) {
+                break;
+            }
+        }
+    };
+
+    auto onRefereeStart = [&audioPlayer, &refereeStartSoundPaths]() {
+        for (const std::string& refereePath : refereeStartSoundPaths) {
+            if (audioPlayer.playOneShot(refereePath)) {
                 break;
             }
         }
@@ -160,6 +171,7 @@ int runGame()
     }
 
     resetGame(ball, team1, team2, gameState, 1);
+    onRefereeStart();
 
     float lastFrameTime = glfwGetTime();
 
@@ -178,6 +190,7 @@ int runGame()
         int scorerSide = updateBall(ball, score, team1, team2, gameState);
         if (scorerSide != 0) {
             stadium.triggerCrowdCelebration(scorerSide);
+            onRefereeStart();
         }
         updateTeam(team1, team2, ball, true, deltaTime, inputState, gameState, onKick);
         updateTeam(team2, team1, ball, false, deltaTime, inputState, gameState, onKick);

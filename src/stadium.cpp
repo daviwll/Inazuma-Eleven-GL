@@ -44,10 +44,11 @@ void Stadium::initializeCrowd() {
         return;
     }
 
-    constexpr std::array<const char*, 3> fileNames = {
-        "removedbg.png",
-        "removedbg2.png",
-        "removedbg3.png"
+    constexpr std::array<const char*, 4> fileNames = {
+        "fans/fans_blue_1.png",
+        "fans/fans_blue_2.png",
+        "fans/fans_red_1.png",
+        "fans/fans_red_2.png"
     };
     const std::vector<std::string> baseDirs = candidateBaseDirs();
 
@@ -63,7 +64,7 @@ void Stadium::initializeCrowd() {
     }
 
     if (crowdTextures.empty()) {
-        std::fprintf(stderr, "[Stadium] Crowd textures not found. Expected files in assets/: removedbg.png, removedbg2.png, removedbg3.png\n");
+        std::fprintf(stderr, "[Stadium] Crowd textures not found. Expected files in assets/fans/: fans_blue_1.png, fans_blue_2.png, fans_red_1.png, fans_red_2.png\n");
     } else {
         std::fprintf(stderr, "[Stadium] Loaded %zu crowd textures.\n", crowdTextures.size());
     }
@@ -81,56 +82,90 @@ void Stadium::renderCrowdBand(float yMin, float yMax, bool mirrorY) {
     glEnable(GL_TEXTURE_2D);
     glColor3f(1.0f, 1.0f, 1.0f);
 
-    const int crowdCount = 56;
-    const float slotWidth = 2.0f / static_cast<float>(crowdCount);
+    const int rowCount = 4;
+    const int crowdPerRow = 28;
+    const float slotWidth = 2.0f / static_cast<float>(crowdPerRow);
     const float baseHeight = yMax - yMin;
+    const float approxAspect = 0.55f;
 
-    for (int i = 0; i < crowdCount; ++i) {
-        GLuint textureId = crowdTextures[static_cast<size_t>(i) % crowdTextures.size()];
-        float jitter = slotWidth * ((i % 5 == 0) ? -0.18f : ((i % 5 == 1) ? -0.08f : ((i % 5 == 2) ? 0.0f : ((i % 5 == 3) ? 0.09f : 0.17f))));
-        float xCenter = -1.0f + (slotWidth * (static_cast<float>(i) + 0.5f)) + jitter;
-        float spriteWidth = slotWidth * ((i % 2 == 0) ? 0.72f : 0.60f);
-        float spriteHeight = baseHeight * ((i % 3 == 0) ? 0.42f : 0.34f);
-        float xMin = xCenter - (spriteWidth * 0.5f);
-        float xMax = xCenter + (spriteWidth * 0.5f);
-        float rowOffset = baseHeight * ((i % 4 == 0) ? 0.06f : ((i % 4 == 1) ? 0.16f : ((i % 4 == 2) ? 0.24f : 0.30f)));
-        float spriteMinY = yMin + rowOffset;
-        float spriteMaxY = spriteMinY + spriteHeight;
+    auto noise01 = [](int seed) {
+        float value = std::sin(static_cast<float>(seed) * 12.9898f) * 43758.5453f;
+        return value - std::floor(value);
+    };
 
-        float wave = std::sin(animationClock * 7.0f + static_cast<float>(i) * 0.35f);
-        bool topBand = yMin > 0.0f;
-        bool activeBand = (celebrationTeamSide == -1 && topBand) || (celebrationTeamSide == 1 && !topBand);
+    for (int row = 0; row < rowCount; ++row) {
+        for (int i = 0; i < crowdPerRow; ++i) {
+            int crowdIndex = row * crowdPerRow + i;
+            float n0 = noise01(crowdIndex + 11);
+            float n1 = noise01(crowdIndex + 37);
+            float n2 = noise01(crowdIndex + 73);
+            float n3 = noise01(crowdIndex + 101);
+            GLuint textureId = crowdTextures[static_cast<size_t>(n0 * static_cast<float>(crowdTextures.size())) % crowdTextures.size()];
 
-        if (celebrationTimer > 0.0f && activeBand) {
-            float jump = (0.5f + 0.5f * wave) * (baseHeight * 0.18f);
-            spriteMinY += jump;
-            spriteMaxY += jump;
-            glColor3f(1.0f, 1.0f, 1.0f);
-        } else {
-            float idle = (0.5f + 0.5f * wave) * (baseHeight * 0.03f);
-            spriteMinY += idle;
-            spriteMaxY += idle;
-            glColor3f(0.85f, 0.85f, 0.85f);
-        }
+            float rowXShift = ((row % 2 == 0) ? 0.0f : (slotWidth * 0.45f)) + ((noise01(row * 19 + 3) - 0.5f) * slotWidth * 0.25f);
+            float jitter = slotWidth * ((n1 * 0.55f) - 0.275f);
+            float xCenter = -1.0f + (slotWidth * (static_cast<float>(i) + 0.5f)) + rowXShift + jitter;
 
-        if (spriteMaxY > yMax) {
-            spriteMaxY = yMax;
-        }
+            float spriteHeight = baseHeight * (0.26f + n3 * 0.055f - static_cast<float>(row) * 0.014f);
+            float spriteWidth = spriteHeight * approxAspect * (0.95f + n2 * 0.20f);
 
-        if (!mirrorY) {
-            renderTexturedQuad(textureId, xMin, xMax, spriteMinY, spriteMaxY);
-        } else {
-            glBindTexture(GL_TEXTURE_2D, textureId);
-            glBegin(GL_QUADS);
-            glTexCoord2f(0.0f, 1.0f);
-            glVertex2f(xMin, spriteMinY);
-            glTexCoord2f(1.0f, 1.0f);
-            glVertex2f(xMax, spriteMinY);
-            glTexCoord2f(1.0f, 0.0f);
-            glVertex2f(xMax, spriteMaxY);
-            glTexCoord2f(0.0f, 0.0f);
-            glVertex2f(xMin, spriteMaxY);
-            glEnd();
+            if (spriteWidth > slotWidth * 1.35f) {
+                spriteWidth = slotWidth * 1.35f;
+            }
+
+            float xMin = xCenter - (spriteWidth * 0.5f);
+            float xMax = xCenter + (spriteWidth * 0.5f);
+
+            float rowBase = 0.02f + static_cast<float>(row) * 0.22f;
+            float overlapPull = static_cast<float>(row) * 0.06f;
+            float rowJitter = (noise01(crowdIndex + 149) - 0.5f) * 0.06f;
+            float spriteMinY = yMin + (baseHeight * (rowBase - overlapPull + rowJitter));
+            float spriteMaxY = spriteMinY + spriteHeight;
+
+            float wave = std::sin(animationClock * 7.0f + static_cast<float>(crowdIndex) * 0.35f);
+            bool topBand = yMin > 0.0f;
+            bool activeBand = (celebrationTeamSide == -1 && topBand) || (celebrationTeamSide == 1 && !topBand);
+
+            if (celebrationTimer > 0.0f && activeBand) {
+                float jump = (0.5f + 0.5f * wave) * (baseHeight * (0.16f - static_cast<float>(row) * 0.02f));
+                spriteMinY += jump;
+                spriteMaxY += jump;
+                glColor3f(1.0f, 1.0f, 1.0f);
+            } else {
+                float idle = (0.5f + 0.5f * wave) * (baseHeight * 0.025f);
+                spriteMinY += idle;
+                spriteMaxY += idle;
+                float shade = 0.92f - static_cast<float>(row) * 0.06f;
+                glColor3f(shade, shade, shade);
+            }
+
+            if (spriteMaxY > yMax) {
+                spriteMaxY = yMax;
+            }
+            if (spriteMinY < yMin) {
+                float shift = yMin - spriteMinY;
+                spriteMinY += shift;
+                spriteMaxY += shift;
+                if (spriteMaxY > yMax) {
+                    spriteMaxY = yMax;
+                }
+            }
+
+            if (!mirrorY) {
+                renderTexturedQuad(textureId, xMin, xMax, spriteMinY, spriteMaxY);
+            } else {
+                glBindTexture(GL_TEXTURE_2D, textureId);
+                glBegin(GL_QUADS);
+                glTexCoord2f(0.0f, 1.0f);
+                glVertex2f(xMin, spriteMinY);
+                glTexCoord2f(1.0f, 1.0f);
+                glVertex2f(xMax, spriteMinY);
+                glTexCoord2f(1.0f, 0.0f);
+                glVertex2f(xMax, spriteMaxY);
+                glTexCoord2f(0.0f, 0.0f);
+                glVertex2f(xMin, spriteMaxY);
+                glEnd();
+            }
         }
     }
 
