@@ -28,7 +28,7 @@ bool AudioPlayer::init() {
     return true;
 }
 
-bool AudioPlayer::initLoopingTrack(const std::string& audioPath) {
+bool AudioPlayer::initLoopingTrack(const std::string& audioPath, float volume) {
     if (!init()) {
         return false;
     }
@@ -46,6 +46,7 @@ bool AudioPlayer::initLoopingTrack(const std::string& audioPath) {
     }
 
     ma_sound_set_looping(track, MA_TRUE);
+    ma_sound_set_volume(track, volume);
     if (ma_sound_start(track) != MA_SUCCESS) {
         ma_sound_uninit(track);
         delete track;
@@ -56,12 +57,27 @@ bool AudioPlayer::initLoopingTrack(const std::string& audioPath) {
     return true;
 }
 
-bool AudioPlayer::playOneShot(const std::string& audioPath) {
+bool AudioPlayer::playOneShot(const std::string& audioPath, float volume) {
     if (!init()) {
         return false;
     }
 
-    return ma_engine_play_sound(engine, audioPath.c_str(), nullptr) == MA_SUCCESS;
+    ma_sound* sound = new ma_sound;
+    if (ma_sound_init_from_file(engine, audioPath.c_str(), MA_SOUND_FLAG_STREAM, nullptr, nullptr, sound) != MA_SUCCESS) {
+        delete sound;
+        return false;
+    }
+    
+    ma_sound_set_volume(sound, volume);
+    
+    bool success = (ma_sound_start(sound) == MA_SUCCESS);
+    if (!success) {
+        ma_sound_uninit(sound);
+        delete sound;
+        return false;
+    }
+    
+    return true;
 }
 
 void AudioPlayer::shutdown() {

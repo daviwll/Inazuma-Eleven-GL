@@ -15,6 +15,8 @@ CPP_SOURCES := \
 	src/input.cpp \
 	src/audio.cpp \
 	src/player.cpp \
+	src/ball.cpp \
+	src/particle.cpp \
 	src/field.cpp \
 	src/stadium.cpp \
 	src/stb_image_impl.cpp \

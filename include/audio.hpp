@@ -9,8 +9,8 @@ public:
     ~AudioPlayer();
 
     bool init();
-    bool initLoopingTrack(const std::string& audioPath);
-    bool playOneShot(const std::string& audioPath);
+    bool initLoopingTrack(const std::string& audioPath, float volume = 1.0f);
+    bool playOneShot(const std::string& audioPath, float volume = 1.0f);
     void shutdown();
 
 private:

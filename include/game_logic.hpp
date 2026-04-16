@@ -29,7 +29,7 @@ void updateTeam(
     float deltaTime,
     const InputState& inputState,
     const GameState& gameState,
-    const std::function<void()>& onKick
+    const std::function<void(bool)>& onKick
 );
 
 #endif

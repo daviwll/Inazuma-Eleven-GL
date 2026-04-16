@@ -1,6 +1,7 @@
 #define GLFW_INCLUDE_NONE
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <cstdlib>
 
 #include "ball.hpp"
 #include "audio.hpp"
@@ -12,6 +13,7 @@
 #include "player.hpp"
 #include "constants.hpp"
 #include "utils.hpp"
+#include "particle.hpp"
 
 #include <vector>
 #include <string>
@@ -31,6 +33,7 @@ int runGame()
     Ball ball{0.0f, 0.0f, 0.005f, 0.002f, 0.98f, nullptr};
     Score score{0, 0};
     InputState inputState{0.0f, 0.0f, false, false, 0.0f, 0.0f};
+    ParticleSystem particles;  // Particle system for effects
     const float initialPlayerSpeed = 0.2f;
 
     // Load Sprites
@@ -47,6 +50,8 @@ int runGame()
     bool audioStarted = false;
     std::vector<std::string> kickSoundPaths;
     std::vector<std::string> refereeStartSoundPaths;
+    
+    // Try to initialize audio from baseDirs first
     for (const auto& baseDir : baseDirs) {
         kickSoundPaths.push_back(baseDir + "sound/kick.mp3");
         refereeStartSoundPaths.push_back(baseDir + "sound/referee-start.mp3");
@@ -56,25 +61,40 @@ int runGame()
         }
     }
 
+    // Fallback to assets folder
     if (!audioStarted) {
-        audioPlayer.initLoopingTrack("assets/sound/background-sound.mp3");
+        if (audioPlayer.initLoopingTrack("assets/sound/background-sound.mp3")) {
+            audioStarted = true;
+        }
     }
+    
+    // Always add fallback sound paths
     kickSoundPaths.push_back("assets/sound/kick.mp3");
     refereeStartSoundPaths.push_back("assets/sound/referee-start.mp3");
 
-    auto onKick = [&audioPlayer, &kickSoundPaths]() {
+    auto onKick = [&audioPlayer, &kickSoundPaths, &particles, &ball](bool isSpecialShot = false) {
+        // Play kick sound
         for (const std::string& kickPath : kickSoundPaths) {
             if (audioPlayer.playOneShot(kickPath)) {
                 break;
             }
         }
-    };
-
-    auto onRefereeStart = [&audioPlayer, &refereeStartSoundPaths]() {
-        for (const std::string& refereePath : refereeStartSoundPaths) {
-            if (audioPlayer.playOneShot(refereePath)) {
-                break;
+        // Emit particles based on shot type
+        if (isSpecialShot) {
+            // Random choice between fire and ice
+            bool isFire = (std::rand() % 2) == 0;
+            if (isFire) {
+                // Fire trail: red/orange/yellow particles
+                particles.emit(ball.x, ball.y, ball.dx * 2.0f, ball.dy * 2.0f, 25, 0.8f, 5.0f, 1.0f, 0.5f, 0.0f);     // Red-orange
+                particles.emit(ball.x, ball.y, ball.dx * 2.0f, ball.dy * 2.0f, 15, 0.6f, 4.0f, 1.0f, 0.8f, 0.0f);     // Yellow
+            } else {
+                // Ice trail: cyan/light blue/white particles
+                particles.emit(ball.x, ball.y, ball.dx * 2.0f, ball.dy * 2.0f, 25, 0.8f, 5.0f, 0.3f, 0.8f, 1.0f);     // Cyan
+                particles.emit(ball.x, ball.y, ball.dx * 2.0f, ball.dy * 2.0f, 15, 0.6f, 4.0f, 0.7f, 0.9f, 1.0f);     // Light blue
             }
+        } else {
+            // Normal dust particles at ball position
+            particles.emit(ball.x, ball.y, ball.dx * 2.0f, ball.dy * 2.0f, 15, 0.5f, 4.0f, 0.8f, 0.7f, 0.5f);
         }
     };
 
@@ -149,6 +169,13 @@ int runGame()
         if (p.role != PlayerRole::GOALKEEPER) {
             p.runFramesRight = redRunFramesRight;
             p.runFramesLeft = redRunFramesLeft;
+            // Debug: ensure frames are assigned
+            if (p.runFramesRight.empty()) {
+                p.runFramesRight = {redFace, redFace, redFace, redFace};
+            }
+            if (p.runFramesLeft.empty()) {
+                p.runFramesLeft = {redFace, redFace, redFace, redFace};
+            }
         }
     }
 
@@ -169,39 +196,68 @@ int runGame()
         if (p.role != PlayerRole::GOALKEEPER) {
             p.runFramesRight = blueRunFramesRight;
             p.runFramesLeft = blueRunFramesLeft;
+            // Debug: ensure frames are assigned
+            if (p.runFramesRight.empty()) {
+                p.runFramesRight = {blueFace, blueFace, blueFace, blueFace};
+            }
+            if (p.runFramesLeft.empty()) {
+                p.runFramesLeft = {blueFace, blueFace, blueFace, blueFace};
+            }
         }
     }
 
     resetGame(ball, team1, team2, gameState, 1);
-    onRefereeStart();
+    
+    // Load ball sprites
+    ball.loadTextures();
 
     float lastFrameTime = glfwGetTime();
 
-    while (!glfwWindowShouldClose(window)) {
-        float currentFrameTime = glfwGetTime();
-        float deltaTime = currentFrameTime - lastFrameTime;
-        lastFrameTime = currentFrameTime;
-        stadium.update(deltaTime);
+bool kickoffStarted = false;
+        
+        while (!glfwWindowShouldClose(window)) {
+            float currentFrameTime = glfwGetTime();
+            float deltaTime = currentFrameTime - lastFrameTime;
+            lastFrameTime = currentFrameTime;
+            stadium.update(deltaTime);
 
-        if (gameState.kickoffTimer > 0.0f) {
-            gameState.kickoffTimer -= deltaTime;
-        }
+            // Play referee whistle when kickoff starts
+            if (gameState.kickoffTimer > 0.0f) {
+                if (!kickoffStarted) {
+                    gameState.kickoffTimer -= deltaTime;
+                    if (gameState.kickoffTimer <= 0.0f && audioPlayer.init()) {
+                        kickoffStarted = true;
+                        for (const std::string& refPath : refereeStartSoundPaths) {
+                            if (audioPlayer.playOneShot(refPath, 0.3f)) {  // Lower volume for referee whistle
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
 
         glClear(GL_COLOR_BUFFER_BIT);
         processInput(window, inputState, gameState.kickoffTimer <= 0.0f);
         int scorerSide = updateBall(ball, score, team1, team2, gameState);
         if (scorerSide != 0) {
             stadium.triggerCrowdCelebration(scorerSide);
-            onRefereeStart();
+            // Emit celebration particles at goal
+            float goalX = (scorerSide > 0) ? -0.93f : 0.93f;
+            particles.emit(goalX, 0.0f, 0.0f, 0.5f, 40, 1.5f, 6.0f, 1.0f, 0.84f, 0.0f);
+            // Reset kickoff flag so timer counts down
+            kickoffStarted = false;
         }
+        ball.update(deltaTime);
+        particles.update(deltaTime);
         updateTeam(team1, team2, ball, true, deltaTime, inputState, gameState, onKick);
         updateTeam(team2, team1, ball, false, deltaTime, inputState, gameState, onKick);
 
         stadium.render(); stadium.renderScoreboard(score.left, score.right);
         field.render();
 
-        glColor3f(1.0f, 1.0f, 1.0f); glPointSize(4.0f);
-        glBegin(GL_POINTS); glVertex2f(ball.x, ball.y); glEnd();
+        ball.render();
+        ball.renderMotionBlur();
+        particles.render();
         for(auto& p : team1) { p.render(); p.renderPowerBar(); }
         for(auto& p : team2) { p.render(); p.renderPowerBar(); }
 

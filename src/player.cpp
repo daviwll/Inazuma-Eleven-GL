@@ -24,13 +24,21 @@ void Player::moveTowards(float targetX, float targetY, float currentSpeed, float
         if (std::abs(dy) > 0.001f) facingY = dy / mag;
         isMoving = true;
     }
+    
+    // Keep player within field boundaries
+    float playerRadius = 0.03f;  // Half the player size
+    x = std::max(-Constants::FIELD_BOUNDARY_X + playerRadius, std::min(Constants::FIELD_BOUNDARY_X - playerRadius, x));
+    y = std::max(-Constants::FIELD_BOUNDARY_Y + playerRadius, std::min(Constants::FIELD_BOUNDARY_Y - playerRadius, y));
 }
 
 void Player::update(float ballX, float ballY, bool is_team_possessing, Player* ballOwner, 
                     const std::vector<Player>& teammates, const std::vector<Player>& opponents, float deltaTime) {
     using namespace Constants;
     
+    // Reset isMoving flag - we'll set it to true during movement if we actually move
+    bool wasMoving = isMoving;
     isMoving = false;
+    
     if (stunTimer > 0) stunTimer -= deltaTime;
     float currentSpeed = speed * ((stunTimer > 0) ? 0.3f : 1.0f);
 
@@ -174,19 +182,29 @@ void Player::render() {
     unsigned int tId = 0;
     
     if (isMoving) {
-        if (facingX > 0 && !runFramesRight.empty()) {
+        // Determine direction and use appropriate run frames
+        bool movingRight = (facingX > 0);
+        bool movingLeft = (facingX < 0);
+        
+        if (movingRight && !runFramesRight.empty()) {
             int frameIdx = static_cast<int>(animTimer) % runFramesRight.size();
             tId = runFramesRight[frameIdx];
-        } else if (facingX < 0 && !runFramesLeft.empty()) {
+        } else if (movingLeft && !runFramesLeft.empty()) {
             int frameIdx = static_cast<int>(animTimer) % runFramesLeft.size();
             tId = runFramesLeft[frameIdx];
         } else if (!runFramesRight.empty()) {
-            // Fallback para quando facingX é 0 mas isMoving é true (movimento vertical puro)
+            // Moving vertically or no direction - use right frames as default
             int frameIdx = static_cast<int>(animTimer) % runFramesRight.size();
             tId = runFramesRight[frameIdx];
         }
+        
+        // If still no tId despite moving, use first run frame if available
+        if (tId == 0 && !runFramesRight.empty()) {
+            tId = runFramesRight[0];
+        }
     }
     
+    // Fallback to static sprite if not moving or no run frames
     if (tId == 0) {
         if (std::abs(facingX) > std::abs(facingY)) {
             tId = (facingX > 0) ? texRight : texLeft;
@@ -196,16 +214,38 @@ void Player::render() {
         if (tId == 0) tId = texFace;
     }
 
+    // Render shadow first
+    float height = (role == PlayerRole::GOALKEEPER ? 0.08f : 0.06f);
+    float width = height * 0.65f;
+    float shadowY = y - height/2 - 0.005f;  // Position below player
+    float shadowRadiusX = width * 0.55f;  // Slightly smaller than player width
+    float shadowRadiusY = 0.008f;  // Thin ellipse
+    
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(0.0f, 0.0f, 0.0f, 0.35f);  // Dark shadow with alpha
+    
+    // Draw shadow as an ellipse using triangle fan
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(x, shadowY);  // Center
+    for (int i = 0; i <= 16; i++) {
+        float angle = (float)i / 16.0f * 3.14159265f * 2.0f;
+        float vx = x + std::cos(angle) * shadowRadiusX;
+        float vy = shadowY + std::sin(angle) * shadowRadiusY;
+        glVertex2f(vx, vy);
+    }
+    glEnd();
+    
+    glDisable(GL_BLEND);
+
     if (tId != 0) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_TEXTURE_2D);
         
-        if (stunTimer > 0) glColor3f(0.3f, 0.3f, 0.3f);
-        else glColor3f(1.0f, 1.0f, 1.0f);
+        glColor3f(1.0f, 1.0f, 1.0f);
 
-        float height = (role == PlayerRole::GOALKEEPER ? 0.10f : 0.08f);
-        float width = height * 0.65f;
         renderTexturedQuad(tId, x - width/2, x + width/2, y - height/2, y + height/2);
         
         glDisable(GL_TEXTURE_2D);
@@ -218,7 +258,6 @@ void Player::render() {
             if (role == PlayerRole::GOALKEEPER) glColor3f(0.0f, 0.5f, 1.0f);
             else glColor3f(0.0f, 0.0f, 1.0f);
         }
-        if (stunTimer > 0) glColor3f(0.5f, 0.5f, 0.5f);
 
         glPointSize(role == PlayerRole::GOALKEEPER ? 12.0f : 10.0f); 
         glBegin(GL_POINTS);
