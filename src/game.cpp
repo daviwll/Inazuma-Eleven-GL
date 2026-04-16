@@ -241,7 +241,8 @@ bool kickoffStarted = false;
         int scorerSide = updateBall(ball, score, team1, team2, gameState);
         if (scorerSide != 0) {
             stadium.triggerCrowdCelebration(scorerSide);
-            // Emit celebration particles at goal
+            // Clear old particles and emit celebration
+            particles.clear();
             float goalX = (scorerSide > 0) ? -0.93f : 0.93f;
             particles.emit(goalX, 0.0f, 0.0f, 0.5f, 40, 1.5f, 6.0f, 1.0f, 0.84f, 0.0f);
             // Reset kickoff flag so timer counts down
