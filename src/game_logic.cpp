@@ -178,10 +178,20 @@ void updateTeam(
                 team[i].x += inputState.axisX * team[i].speed * speedMult * deltaTime;
                 team[i].y += inputState.axisY * team[i].speed * speedMult * deltaTime;
                 
-                // Keep player within field boundaries
-                float playerRadius = 0.03f;
-                team[i].x = std::max(-FIELD_BOUNDARY_X + playerRadius, std::min(FIELD_BOUNDARY_X - playerRadius, team[i].x));
-                team[i].y = std::max(-FIELD_BOUNDARY_Y + playerRadius, std::min(FIELD_BOUNDARY_Y - playerRadius, team[i].y));
+                // Keep player within boundaries (field or penalty area for goalkeeper)
+                float playerHalfWidth = (team[i].role == PlayerRole::GOALKEEPER) ? 0.026f : 0.02f;
+                if (team[i].role == PlayerRole::GOALKEEPER) {
+                    float areaLimitX = FIELD_BOUNDARY_X - PENALTY_AREA_WIDTH;
+                    if (team[i].side == -1) {
+                        team[i].x = std::max(-FIELD_BOUNDARY_X + playerHalfWidth, std::min(-areaLimitX + playerHalfWidth, team[i].x));
+                    } else {
+                        team[i].x = std::max(areaLimitX - playerHalfWidth, std::min(FIELD_BOUNDARY_X - playerHalfWidth, team[i].x));
+                    }
+                    team[i].y = std::max(-PENALTY_AREA_HEIGHT + playerHalfWidth, std::min(PENALTY_AREA_HEIGHT - playerHalfWidth, team[i].y));
+                } else {
+                    team[i].x = std::max(-FIELD_BOUNDARY_X + playerHalfWidth, std::min(FIELD_BOUNDARY_X - playerHalfWidth, team[i].x));
+                    team[i].y = std::max(-FIELD_BOUNDARY_Y + playerHalfWidth, std::min(FIELD_BOUNDARY_Y - playerHalfWidth, team[i].y));
+                }
                 
                 if (inputState.axisX != 0.0f) team[i].facingX = inputState.axisX;
                 if (inputState.axisY != 0.0f) team[i].facingY = inputState.axisY;
