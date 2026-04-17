@@ -305,3 +305,8 @@ Headers in `include/` provide interfaces and shared structs/constants used acros
 - Immediate-mode OpenGL rendering (simple and educational, not modern GPU pipeline focused)
 - Pointer-based possession reference (`Ball::owner` points to `Player` in team vectors)
 - Lightweight AI heuristics (distance-based chase, probabilistic pass/shot decisions)
+
+## 12) Development Attribution
+
+- The project was developed by Antonio Guilherme and Davi Santos.
+- AI-assisted development was used for parts of the sprite workflow and in-game physics implementation.
