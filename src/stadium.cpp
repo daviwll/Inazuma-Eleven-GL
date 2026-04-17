@@ -10,12 +10,15 @@
 #include <string>
 #include <unistd.h>
 
+// Creates stadium state used for crowd animation and celebrations.
 Stadium::Stadium() : crowdReady(false), celebrationTimer(0.0f), animationClock(0.0f), celebrationTeamSide(0) {}
 
+// Ensures GL texture resources are released on destruction.
 Stadium::~Stadium() {
     shutdown();
 }
 
+// Frees loaded crowd textures.
 void Stadium::shutdown() {
     if (!crowdTextures.empty()) {
         glDeleteTextures(static_cast<GLsizei>(crowdTextures.size()), crowdTextures.data());
@@ -23,6 +26,7 @@ void Stadium::shutdown() {
     }
 }
 
+// Advances crowd animation timers and celebration cooldowns.
 void Stadium::update(float deltaTime) {
     animationClock += deltaTime;
     if (celebrationTimer > 0.0f) {
@@ -34,11 +38,13 @@ void Stadium::update(float deltaTime) {
     }
 }
 
+// Starts a temporary crowd celebration for the scoring side.
 void Stadium::triggerCrowdCelebration(int teamSide) {
     celebrationTeamSide = teamSide;
     celebrationTimer = 1.8f;
 }
 
+// Lazily loads crowd textures from candidate asset directories.
 void Stadium::initializeCrowd() {
     if (crowdReady) {
         return;
@@ -72,6 +78,7 @@ void Stadium::initializeCrowd() {
     crowdReady = true;
 }
 
+// Draws one crowd strip (top or bottom) with animated spectators.
 void Stadium::renderCrowdBand(float yMin, float yMax, bool mirrorY) {
     if (crowdTextures.empty()) {
         return;
@@ -173,6 +180,7 @@ void Stadium::renderCrowdBand(float yMin, float yMax, bool mirrorY) {
     glDisable(GL_BLEND);
 }
 
+// Renders the stadium background geometry and crowd layers.
 void Stadium::render() {
     initializeCrowd();
 
@@ -187,7 +195,7 @@ void Stadium::render() {
         glVertex2f(-1.0f,  1.0f);
     glEnd();
 
-    // Detalhes assentos superior
+    // Upper seating details
     glColor3f(0.3f, 0.3f, 0.3f);
     glBegin(GL_LINES);
         for(float y = FIELD_HALF_HEIGHT + 0.05f; y < 1.0f; y += 0.05f) {
@@ -206,7 +214,7 @@ void Stadium::render() {
         glVertex2f(-1.0f, -1.0f);
     glEnd();
 
-    // Detalhes assentos inferior
+    // Lower seating details
     glColor3f(0.3f, 0.3f, 0.3f);
     glBegin(GL_LINES);
         for(float y = -FIELD_HALF_HEIGHT - 0.05f; y > -1.0f; y -= 0.05f) {
@@ -228,7 +236,7 @@ void Stadium::render() {
     glEnd();
 }
 
-// Helper para desenhar números simples com linhas
+// Helper that draws a simple 7-segment-like digit using lines.
 void drawDigit(float x, float y, int digit) {
     float w = 0.02f;
     float h = 0.04f;
@@ -239,19 +247,20 @@ void drawDigit(float x, float y, int digit) {
     if(digit!=1 && digit!=7 && digit!=0) { glVertex2f(x-w, y); glVertex2f(x+w, y); }
     // Fundo
     if(digit!=1 && digit!=4 && digit!=7) { glVertex2f(x-w, y-h); glVertex2f(x+w, y-h); }
-    // Superior Esquerdo
+    // Upper left
     if(digit!=1 && digit!=2 && digit!=3 && digit!=7) { glVertex2f(x-w, y+h); glVertex2f(x-w, y); }
-    // Superior Direito
+    // Upper right
     if(digit!=5 && digit!=6) { glVertex2f(x+w, y+h); glVertex2f(x+w, y); }
-    // Inferior Esquerdo
+    // Lower left
     if(digit==0 || digit==2 || digit==6 || digit==8) { glVertex2f(x-w, y); glVertex2f(x-w, y-h); }
-    // Inferior Direito
+    // Lower right
     if(digit!=2) { glVertex2f(x+w, y); glVertex2f(x+w, y-h); }
     glEnd();
 }
 
+// Draws the top-center scoreboard with current match score.
 void Stadium::renderScoreboard(int scoreLeft, int scoreRight) {
-    // Fundo do Placar (Televisão)
+    // Scoreboard background (TV)
     glColor3f(0.1f, 0.1f, 0.1f);
     glBegin(GL_QUADS);
         glVertex2f(-0.15f, 0.82f);
@@ -260,7 +269,7 @@ void Stadium::renderScoreboard(int scoreLeft, int scoreRight) {
         glVertex2f(-0.15f, 0.95f);
     glEnd();
 
-    // Borda da TV
+    // TV frame border
     glColor3f(0.6f, 0.6f, 0.6f);
     glLineWidth(3.0f);
     glBegin(GL_LINE_LOOP);
@@ -275,8 +284,8 @@ void Stadium::renderScoreboard(int scoreLeft, int scoreRight) {
         glVertex2f(0.0f, 0.84f); glVertex2f(0.0f, 0.93f);
     glEnd();
 
-    // Números
-    glColor3f(1.0f, 1.0f, 0.0f); // Amarelo digital
+    // Digits
+    glColor3f(1.0f, 1.0f, 0.0f); // Digital yellow
     glLineWidth(2.0f);
     drawDigit(-0.06f, 0.885f, scoreLeft % 10);
     drawDigit( 0.06f, 0.885f, scoreRight % 10);

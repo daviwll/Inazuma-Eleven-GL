@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
+// Builds a player with starting position, role, and sprite set.
 Player::Player(float startX, float startY, float startSpeed, int startSide, PlayerRole role, 
                unsigned int texFace, unsigned int texBack, unsigned int texLeft, unsigned int texRight)
     : x(startX), y(startY), startX(startX), startY(startY), 
@@ -13,6 +14,7 @@ Player::Player(float startX, float startY, float startSpeed, int startSide, Play
       texFace(texFace), texBack(texBack), texLeft(texLeft), texRight(texRight),
       animTimer(0.0f), isMoving(false) {}
 
+// Moves the player toward a target point while clamping to field bounds.
 void Player::moveTowards(float targetX, float targetY, float currentSpeed, float deltaTime) {
     float dx = targetX - x;
     float dy = targetY - y;
@@ -31,6 +33,7 @@ void Player::moveTowards(float targetX, float targetY, float currentSpeed, float
     y = std::max(-Constants::FIELD_BOUNDARY_Y + playerRadius, std::min(Constants::FIELD_BOUNDARY_Y - playerRadius, y));
 }
 
+// Updates AI behavior and movement depending on role, possession, and context.
 void Player::update(float ballX, float ballY, bool is_team_possessing, Player* ballOwner, 
                     const std::vector<Player>& teammates, const std::vector<Player>& opponents, float deltaTime) {
     using namespace Constants;
@@ -73,7 +76,7 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
 
     float areaLimitX = FIELD_BOUNDARY_X - PENALTY_AREA_WIDTH;
 
-    // Se o goleiro está segurando a bola, os adversários devem se afastar da área
+    // If the goalkeeper is holding the ball, opponents should move away from the area
     bool isGkHoldingBall = (ballOwner != nullptr && ballOwner->role == PlayerRole::GOALKEEPER);
     
     bool shouldMoveAway = false;
@@ -82,11 +85,11 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
     }
 
     if (shouldMoveAway) {
-        // Define um alvo fixo logo fora da área penal para evitar movimento infinito
+        // Set a fixed target just outside the penalty area to avoid endless movement loops
         float targetX = (side == 1) ? -areaLimitX + 0.2f : areaLimitX - 0.2f;
         float targetY = y;
         
-        // Só se move para se afastar se estiver muito perto ou dentro da área
+        // Only move away when too close to, or inside, the area
         bool tooClose = (side == 1 && x < targetX) || (side == -1 && x > targetX);
         if (tooClose) {
             moveTowards(targetX, targetY, currentSpeed * 0.5f, deltaTime);
@@ -97,9 +100,9 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
 
     if (is_team_possessing) {
         if (ballOwner == this) {
-            // Se o jogador tem a bola e não é controlado pelo usuário (IA driblando),
-            // a lógica de drible em game_logic.cpp que define isMoving.
-            // Mas aqui Player::update é chamado para os outros jogadores.
+            // If this player has the ball and is AI-controlled (dribbling),
+            // dribble behavior in game_logic.cpp sets isMoving.
+            // Player::update here handles the other players.
             return;
         }
 
@@ -110,16 +113,16 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
         else if (role == PlayerRole::MIDFIELDER) baseAdvancement = 0.55f;
         else if (role == PlayerRole::ATTACKER) baseAdvancement = 0.8f;
 
-        // --- LÓGICA DE POSICIONAMENTO ---
-        // 1. Mantém a largura da formação original (evita colarem no centro)
+        // --- POSITIONING LOGIC ---
+        // 1. Keep original formation width (avoid collapsing to center)
         float formationWeight = 0.5f;
         float ballWeight = 0.5f;
         
         float targetX = (startX + (attackDir * baseAdvancement)) * formationWeight + (ballX + attackDir * 0.15f) * ballWeight;
-        // O Y agora preserva muito mais a posição original para manter o campo espalhado
+        // Y now preserves more of the original position to keep spacing across the field
         float targetY = (startY * 0.7f) + (ballY * 0.3f); 
 
-        // 2. SEPARAÇÃO (Evita que fiquem colados uns nos outros)
+        // 2. SEPARATION (avoid players sticking together)
         float sepX = 0, sepY = 0;
         float minSepDist = 0.15f; // Reduzido de 0.2f
         for(const auto& mate : teammates) {
@@ -141,12 +144,12 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
         else targetX = std::max(-FIELD_BOUNDARY_X + 0.05f, targetX);
         targetY = std::max(-FIELD_BOUNDARY_Y + 0.05f, std::min(FIELD_BOUNDARY_Y - 0.05f, targetY));
 
-        // 4. DESMARCAÇÃO (Foge dos oponentes)
+        // 4. OFF-BALL MOVEMENT (move away from opponents)
         for(const auto& opp : opponents) {
             float dx = x - opp.x;
             float dy = y - opp.y;
             float d2 = dx*dx + dy*dy;
-            if(d2 < 0.0144f && d2 > 0.0001f) { // Se menos de 0.12 de distância (Reduzido)
+            if(d2 < 0.0144f && d2 > 0.0001f) { // If closer than 0.12 distance (reduced)
                 float d = std::sqrt(d2);
                 targetX += (dx/d) * 0.08f;
                 targetY += (dy/d) * 0.08f;
@@ -156,16 +159,16 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
         moveTowards(targetX, targetY, currentSpeed * 0.95f, deltaTime);
     } 
     else {
-        // TIME ADVERSÁRIO COM A BOLA
+        // Opponent team in possession
         if (is_targeting_ball) {
             moveTowards(ballX, ballY, currentSpeed, deltaTime);
         } 
         else {
-            // Marcação com distanciamento
+            // Marking with spacing
             float targetX = startX + (ballX - startX) * 0.15f;
             float targetY = startY + (ballY - startY) * 0.25f;
             
-            // Separação defensiva básica
+            // Basic defensive separation
             for(const auto& mate : teammates) {
                 if(&mate == this) continue;
                 float d2 = std::pow(x-mate.x,2) + std::pow(y-mate.y,2);
@@ -178,6 +181,7 @@ void Player::update(float ballX, float ballY, bool is_team_possessing, Player* b
     if (isMoving) animTimer += deltaTime * 10.0f;
 }
 
+// Renders the player using animated frames or fallback geometry.
 void Player::render() {
     unsigned int tId = 0;
     
@@ -266,6 +270,7 @@ void Player::render() {
     }
 }
 
+// Draws the kick charge bar above the player when charging.
 void Player::renderPowerBar() {
     if (kickPower <= 0.01f) return;
     float barWidth = 0.08f;

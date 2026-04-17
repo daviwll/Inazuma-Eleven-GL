@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <cmath>
 
+// Draws a textured quad centered at (x, y) with 2D rotation.
 void renderTexturedQuadWithRotation(unsigned int textureId, float x, float y, float size, float rotationDegrees) {
     glPushMatrix();
     glTranslatef(x, y, 0.0f);
@@ -38,6 +39,7 @@ void renderTexturedQuadWithRotation(unsigned int textureId, float x, float y, fl
     glPopMatrix();
 }
 
+// Loads normal and special ball textures from candidate asset folders.
 void Ball::loadTextures() {
     std::vector<std::string> baseDirs = candidateBaseDirs();
     
@@ -73,6 +75,7 @@ void Ball::loadTextures() {
     }
 }
 
+// Updates ball animation, spin/curve physics, and motion trail buffers.
 void Ball::update(float deltaTime) {
     // Update motion blur trail
     if (trailX.size() >= TRAIL_LENGTH) {
@@ -142,6 +145,7 @@ void Ball::update(float deltaTime) {
     }
 }
 
+// Renders the ball sprite, or a debug fallback if texture loading failed.
 void Ball::render() {
     // Select texture based on state
     unsigned int texToUse = 0;
@@ -174,6 +178,7 @@ void Ball::render() {
     }
 }
 
+// Renders a fading point trail to simulate motion blur at high speed.
 void Ball::renderMotionBlur() {
     // Render motion blur trail only if ball is moving fast
     float speed = std::sqrt(dx * dx + dy * dy);
@@ -199,6 +204,7 @@ void Ball::renderMotionBlur() {
     glEnable(GL_TEXTURE_2D);
 }
 
+// Renders charged-shot visual effects around the ball.
 void Ball::renderHissatsuEffect(float kickPower) {
     if (kickPower <= 0.0f) return;
     

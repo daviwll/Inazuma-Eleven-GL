@@ -18,6 +18,7 @@
 #include <vector>
 #include <string>
 
+// Bootstraps the whole match loop: setup, update, render, and teardown.
 int runGame()
 {
     if (!glfwInit()) return -1;

@@ -1,6 +1,7 @@
 #include "particle.hpp"
 #include <glad/glad.h>
 
+// Draws active particles as blended points.
 void ParticleSystem::render() {
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);

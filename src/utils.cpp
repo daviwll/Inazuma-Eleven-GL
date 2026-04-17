@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <unistd.h>
 
+// Loads a PNG from disk into an OpenGL RGBA texture.
 unsigned int loadTextureFromPng(const char* path) {
     int width = 0;
     int height = 0;
@@ -30,6 +31,7 @@ unsigned int loadTextureFromPng(const char* path) {
     return textureId;
 }
 
+// Draws a textured quad using the provided bounds in world space.
 void renderTexturedQuad(unsigned int textureId, float xMin, float xMax, float yMin, float yMax) {
     glBindTexture(GL_TEXTURE_2D, textureId);
     glBegin(GL_QUADS);
@@ -44,6 +46,7 @@ void renderTexturedQuad(unsigned int textureId, float xMin, float xMax, float yM
     glEnd();
 }
 
+// Returns candidate asset base directories relative to cwd and executable path.
 std::vector<std::string> candidateBaseDirs() {
     std::vector<std::string> dirs = {
         "assets/",

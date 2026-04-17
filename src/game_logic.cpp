@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdlib>
 
+// Resets ball/player states and prepares the next kickoff.
 void resetGame(Ball& ball, std::vector<Player>& team1, std::vector<Player>& team2, GameState& gameState, int scoringTeamSide) {
     ball.x = 0.0f;
     ball.y = 0.0f;
@@ -49,6 +50,7 @@ void resetGame(Ball& ball, std::vector<Player>& team1, std::vector<Player>& team
     gameState.kickoffTimer = 2.0f;
 }
 
+// Advances ball physics, handles wall collisions, and detects goals.
 int updateBall(Ball& ball, Score& score, std::vector<Player>& team1, std::vector<Player>& team2, GameState& gameState) {
     using namespace Constants;
 
@@ -111,6 +113,7 @@ int updateBall(Ball& ball, Score& score, std::vector<Player>& team1, std::vector
     return 0;
 }
 
+// Updates one team's control flow (player input or AI), kicking, and possession.
 void updateTeam(
     std::vector<Player>& team,
     std::vector<Player>& opponents,
@@ -266,14 +269,14 @@ ball.owner = nullptr;
                         continue;
                     }
 
-                    // Calcular score baseado na proximidade e tipo de jogador
+                    // Calculate score based on proximity and player role
                     float mateDist = std::sqrt(std::pow(mate.x - team[i].x, 2) + std::pow(mate.y - team[i].y, 2));
                     
-                    // Bonus por role - priorizar atacantes fortemente
+                    // Role bonus - strongly prioritize attackers
                     float roleBonus = 0.0f;
                     if (mate.role == PlayerRole::ATTACKER) roleBonus = 5.0f;
                     else if (mate.role == PlayerRole::MIDFIELDER) roleBonus = 2.0f;
-                    else roleBonus = -1.0f;  // Penaliza passes para defensores
+                    else roleBonus = -1.0f;  // Penalize passes to defenders
                     
                     // Only allow passes FORWARD (closer to opponent's goal)
                     float mateDistToGoal = std::sqrt(std::pow(targetGoalX - mate.x, 2) + std::pow(0.0f - mate.y, 2));

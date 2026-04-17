@@ -5,12 +5,15 @@
 
 #include <utility>
 
+// Builds an audio player with no active engine or track yet.
 AudioPlayer::AudioPlayer() : initialized(false), engine(nullptr), track(nullptr) {}
 
+// Ensures audio resources are released when the object is destroyed.
 AudioPlayer::~AudioPlayer() {
     shutdown();
 }
 
+// Initializes the miniaudio engine once and keeps the player ready.
 bool AudioPlayer::init() {
     if (initialized) {
         return true;
@@ -28,6 +31,7 @@ bool AudioPlayer::init() {
     return true;
 }
 
+// Starts a looping background track from disk.
 bool AudioPlayer::initLoopingTrack(const std::string& audioPath, float volume) {
     if (!init()) {
         return false;
@@ -57,6 +61,7 @@ bool AudioPlayer::initLoopingTrack(const std::string& audioPath, float volume) {
     return true;
 }
 
+// Plays a one-shot sound effect (kick, whistle, etc.).
 bool AudioPlayer::playOneShot(const std::string& audioPath, float volume) {
     if (!init()) {
         return false;
@@ -80,6 +85,7 @@ bool AudioPlayer::playOneShot(const std::string& audioPath, float volume) {
     return true;
 }
 
+// Stops sounds and releases all allocated audio objects.
 void AudioPlayer::shutdown() {
     if (track != nullptr) {
         ma_sound_uninit(track);

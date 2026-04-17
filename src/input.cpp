@@ -1,6 +1,7 @@
 #include "input.hpp"
 #include <GLFW/glfw3.h>
 
+// Reads keyboard/mouse input and maps it into normalized game controls.
 void processInput(GLFWwindow* window, InputState& inputState, bool allowControls) {
     inputState.axisX = 0.0f;
     inputState.axisY = 0.0f;
