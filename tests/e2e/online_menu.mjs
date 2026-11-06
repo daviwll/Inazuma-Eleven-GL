@@ -66,8 +66,13 @@ async function openOnline(p) {
   return layout(p, "online_home", from);
 }
 
-// --- red creates a room, leaves it with Esc, then creates the real one --------------
+// Both pages boot up front: under SwiftShader a page that boots while the other one
+// renders the match scene can take minutes to reach its main menu.
 const red = await player("red");
+const blue = await player("blue");
+await layout(blue, "main", 0);
+
+// --- red creates a room, leaves it with Esc, then creates the real one --------------
 let home = await openOnline(red);
 await typeInto(red, home, "nickname", "MenuRed");
 await click(red, home, "half_30");
@@ -88,7 +93,6 @@ check(code && matchId, `red creates the match room (${code}, ${matchId})`);
 await layout(red, "online_waiting", from);
 
 // --- blue joins: a wrong code first, then red's code ----------------------------------
-const blue = await player("blue");
 home = await openOnline(blue);
 await typeInto(blue, home, "nickname", "MenuBlue");
 await typeInto(blue, home, "code", "ZZZZZZ");
