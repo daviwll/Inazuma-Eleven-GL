@@ -47,8 +47,8 @@ const parseLayout = (line) => Object.fromEntries(line.split(" ").slice(2).map((k
 }));
 
 /** Waits for page `ui` to be logged (after `from`) and returns its control centres. */
-async function layout(p, ui, from) {
-  const line = await p.next(new RegExp(`^\\[ui\\] ${ui} `), from, 180_000);
+async function layout(p, ui, from, ms = 180_000) {
+  const line = await p.next(new RegExp(`^\\[ui\\] ${ui} `), from, ms);
   if (!line) throw new Error(`${p.name}: page ${ui} never shown`);
   const dpr = await p.page.evaluate(() => window.devicePixelRatio);
   const pos = parseLayout(line);
@@ -63,19 +63,17 @@ async function typeInto(p, pos, id, text) {
   await p.page.keyboard.type(text, { delay: 80 });
   await p.page.waitForTimeout(1500);
 }
+// A page that boots while the other renders the waiting room can take minutes under
+// SwiftShader on a CI runner, hence the longer wait for the first main menu.
 async function openOnline(p) {
-  const main = await layout(p, "main", 0);
+  const main = await layout(p, "main", 0, 360_000);
   const from = p.mark();
   await click(p, main, "play_online");
   return layout(p, "online_home", from);
 }
 
-// Both pages boot up front, before red's waiting room renders the stadium.
-const red = await player("red");
-const blue = await player("blue");
-await layout(blue, "main", 0);
-
 // --- red creates a room, leaves it with Esc, then creates the real one --------------
+const red = await player("red");
 let home = await openOnline(red);
 await typeInto(red, home, "nickname", "MenuRed");
 await click(red, home, "half_30");
@@ -96,6 +94,7 @@ check(code && matchId, `red creates the match room (${code}, ${matchId})`);
 await layout(red, "online_waiting", from);
 
 // --- blue joins: a wrong code first, then red's code ----------------------------------
+const blue = await player("blue");
 home = await openOnline(blue);
 await typeInto(blue, home, "nickname", "MenuBlue");
 await typeInto(blue, home, "code", "ZZZZZZ");
