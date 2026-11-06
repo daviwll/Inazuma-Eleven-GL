@@ -20,9 +20,13 @@ import { chromium } from "playwright";
 import { allPassed, check, recentEntries, waitFor } from "./lib.mjs";
 
 const base = process.argv[2] ?? "http://localhost";
-const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
+// One browser per player: pages of one browser share its GPU process, and under
+// SwiftShader two pages there rendered ~9x slower than one (two browsers: ~1.3x).
+const browsers = [];
 
 async function player(name) {
+  const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
+  browsers.push(browser);
   const context = await browser.newContext({ viewport: { width: 960, height: 540 } });
   const page = await context.newPage();
   const lines = [];
@@ -66,8 +70,7 @@ async function openOnline(p) {
   return layout(p, "online_home", from);
 }
 
-// Both pages boot up front: under SwiftShader a page that boots while the other one
-// renders the match scene can take minutes to reach its main menu.
+// Both pages boot up front, before red's waiting room renders the stadium.
 const red = await player("red");
 const blue = await player("blue");
 await layout(blue, "main", 0);
@@ -126,7 +129,7 @@ for (const p of [red, blue]) {
 const errors = [...red.lines, ...blue.lines].filter((l) => /pageerror|SCRIPT ERROR/.test(l));
 check(errors.length === 0, `no script errors in either page (${errors.length})`);
 if (errors.length) console.log(errors.slice(0, 5).join("\n"));
-await browser.close();
+await Promise.all(browsers.map((b) => b.close()));
 
 const entries = matchId ? await waitFor(async () => { const e = await recentEntries(base, matchId); return e?.length ? e : null; }, 60_000, 1000) : null;
 check(entries?.length === 1, `the result appears once in /api/stats/v1/matches/recent (${entries?.length ?? 0})`);
