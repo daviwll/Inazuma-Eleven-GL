@@ -46,6 +46,10 @@ func _ready() -> void:
 		base_url = default_base_url()
 	_http = HTTPRequest.new()
 	_http.timeout = TIMEOUT_S
+	# On the web the browser's fetch already decodes the body but keeps the
+	# Content-Encoding header; letting HTTPRequest gunzip it again fails
+	# (result 8) whenever the response is gzip, e.g. behind a CDN/tunnel.
+	_http.accept_gzip = not OS.has_feature("web")
 	add_child(_http)
 
 static func default_base_url() -> String:

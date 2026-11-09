@@ -20,9 +20,13 @@ import { chromium } from "playwright";
 import { allPassed, check, recentEntries, waitFor } from "./lib.mjs";
 
 const base = process.argv[2] ?? "http://localhost";
-const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
+// One browser per player: pages of one browser share its GPU process, and under
+// SwiftShader two pages there rendered ~9x slower than one (two browsers: ~1.3x).
+const browsers = [];
 
 async function player(name) {
+  const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
+  browsers.push(browser);
   const context = await browser.newContext({ viewport: { width: 960, height: 540 } });
   const page = await context.newPage();
   const lines = [];
@@ -43,8 +47,8 @@ const parseLayout = (line) => Object.fromEntries(line.split(" ").slice(2).map((k
 }));
 
 /** Waits for page `ui` to be logged (after `from`) and returns its control centres. */
-async function layout(p, ui, from) {
-  const line = await p.next(new RegExp(`^\\[ui\\] ${ui} `), from, 180_000);
+async function layout(p, ui, from, ms = 180_000) {
+  const line = await p.next(new RegExp(`^\\[ui\\] ${ui} `), from, ms);
   if (!line) throw new Error(`${p.name}: page ${ui} never shown`);
   const dpr = await p.page.evaluate(() => window.devicePixelRatio);
   const pos = parseLayout(line);
@@ -59,8 +63,10 @@ async function typeInto(p, pos, id, text) {
   await p.page.keyboard.type(text, { delay: 80 });
   await p.page.waitForTimeout(1500);
 }
+// A page that boots while the other renders the waiting room can take minutes under
+// SwiftShader on a CI runner, hence the longer wait for the first main menu.
 async function openOnline(p) {
-  const main = await layout(p, "main", 0);
+  const main = await layout(p, "main", 0, 360_000);
   const from = p.mark();
   await click(p, main, "play_online");
   return layout(p, "online_home", from);
@@ -122,7 +128,7 @@ for (const p of [red, blue]) {
 const errors = [...red.lines, ...blue.lines].filter((l) => /pageerror|SCRIPT ERROR/.test(l));
 check(errors.length === 0, `no script errors in either page (${errors.length})`);
 if (errors.length) console.log(errors.slice(0, 5).join("\n"));
-await browser.close();
+await Promise.all(browsers.map((b) => b.close()));
 
 const entries = matchId ? await waitFor(async () => { const e = await recentEntries(base, matchId); return e?.length ? e : null; }, 60_000, 1000) : null;
 check(entries?.length === 1, `the result appears once in /api/stats/v1/matches/recent (${entries?.length ?? 0})`);
