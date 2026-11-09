@@ -24,7 +24,7 @@ const page = await context.newPage();
 const lines = [];
 page.on("console", (m) => lines.push(m.text()));
 page.on("pageerror", (e) => lines.push(`pageerror: ${e.message}`));
-await page.goto(base + "/");
+await page.goto(base + "/?skip_intro");
 
 const mark = () => lines.length;
 const next = (re, from = 0, ms = 120_000) => waitFor(() => lines.slice(from).find((l) => re.test(l)) ?? null, ms, 250);

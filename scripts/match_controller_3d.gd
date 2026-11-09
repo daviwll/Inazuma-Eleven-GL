@@ -145,10 +145,22 @@ func _ready() -> void:
 	Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	if LaunchArgs.flag("latency"):
 		_latency_probe = LatencyProbe.new()
-	_set_game_state(GameConfig.GameState.INTRO)
-	intro.start()
+	if _skip_intro():
+		_set_game_state(GameConfig.GameState.MENU)
+	else:
+		_set_game_state(GameConfig.GameState.INTRO)
+		intro.start()
 	print("Inazuma Eleven 3D environment ready")
 	_start_online_from_launch_args()
+
+## The startup intro waits for Enter, so it is skipped when the process was
+## launched straight into an online match (--connect/--token, web ?match=&token=)
+## or with the `skip_intro` launch option (the browser e2e scripts use it).
+## IntroManager.start() already skips it on a headless display.
+func _skip_intro() -> bool:
+	if LaunchArgs.flag("skip_intro"):
+		return true
+	return LaunchArgs.value("token") != "" and (LaunchArgs.value("connect") != "" or LaunchArgs.value("match") != "")
 
 func _on_intro_finished() -> void:
 	if game_state == GameConfig.GameState.INTRO:

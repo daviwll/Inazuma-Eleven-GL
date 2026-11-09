@@ -53,7 +53,7 @@ async function layout(ui, from) {
 const click = (pos, id) => page.mouse.click(pos[id][0], pos[id][1]);
 async function loadMain() {
   const from = mark();
-  await page.goto(base + "/");
+  await page.goto(base + "/?skip_intro");
   return layout("main", from);
 }
 

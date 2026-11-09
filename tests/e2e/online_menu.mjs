@@ -28,7 +28,7 @@ async function player(name) {
   const lines = [];
   page.on("console", (m) => lines.push(m.text()));
   page.on("pageerror", (e) => lines.push(`pageerror: ${e.message}`));
-  await page.goto(base + "/");
+  await page.goto(base + "/?skip_intro");
   const p = { name, page, lines };
   p.mark = () => lines.length;
   // The first line matching `re` logged at or after index `from`.
