@@ -18,6 +18,7 @@ const ROOT = process.argv[2];
 const PAGES_TXT = process.argv[3];
 const rd = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8").replace(/\r\n/g, "\n");
 const REPO_URL = "https://github.com/guilhermek32/Inazuma-Eleven-GL";
+const VIDEO_URL = "https://youtu.be/TzpcnQoaAeA";
 const AUTHORS = ["ERICK KEVEN DA SILVA ALVES", "ANTONIO GUILHERME DA SILVA"];
 const YEAR = "2026";
 const ACESSO = "Acesso em: 29 out. 2026.";
@@ -197,7 +198,7 @@ capa.push(new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 10
     new ExternalHyperlink({ link: REPO_URL, children: [new TextRun({ text: REPO_URL, style: "Hyperlink", size: 20 })] })] }));
 capa.push(new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 60, after: 0, line: LINE_1, lineRule: AUTO },
   children: [new TextRun({ text: "Vídeo de demonstração: ", size: 20 }),
-    new TextRun({ text: "[inserir link do vídeo]", size: 20, color: "C00000" })] }));
+    new ExternalHyperlink({ link: VIDEO_URL, children: [new TextRun({ text: VIDEO_URL, style: "Hyperlink", size: 20 })] })] }));
 capa.push(centered("Maceió", { bold: true, before: 3000 }));
 capa.push(centered(YEAR, { bold: true }));
 
@@ -212,7 +213,7 @@ pre.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, indent: { left: 8 *
   children: [new TextRun({ text: "Relatório de projeto apresentado à disciplina de Engenharia de Software da Universidade Federal de Alagoas, como requisito parcial para aprovação na disciplina.", size: 20 })] }));
 pre.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, indent: { left: 8 * CM },
   spacing: { line: LINE_1, lineRule: AUTO, after: 0 },
-  children: [new TextRun({ text: "Professor(a): [preencher]", size: 20 })] }));
+  children: [new TextRun({ text: "Professor: Arturo Hernández Domínguez", size: 20 })] }));
 pre.push(centered("Maceió", { bold: true, before: 3600 }));
 pre.push(centered(YEAR, { bold: true }));
 
@@ -220,11 +221,11 @@ pre.push(centered(YEAR, { bold: true }));
 const titleNoNum = (t) => new Paragraph({ style: "TituloSemNumero", alignment: AlignmentType.CENTER, pageBreakBefore: true, children: [new TextRun(t)] });
 const resumoPar = (text) => new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { line: LINE_15, lineRule: AUTO, after: 0 }, children: runs(text) });
 pre.push(titleNoNum("RESUMO"));
-pre.push(resumoPar("Este relatório apresenta o Inazuma Eleven GL, um jogo digital não violento de futebol arcade 11 contra 11 em 3D, desenvolvido em Godot 4.7, que roda no navegador e no desktop, com partidas offline e online. A parte online foi construída como um sistema de microsserviços independentes (lobby, match runtime, results, ai-bot e recommendation) atrás de um API Gateway (Caddy), implantado com Docker Compose, e o jogo é organizado em componentes de software reutilizados pelo cliente, pelo servidor autoritativo e pelo bot de inteligência artificial. O trabalho foi conduzido com a metodologia ágil Scrum, em seis sprints registradas no histórico do repositório, e aplicou como técnicas de reuso os microsserviços e os componentes de software, além do reuso de frameworks. Um sistema de recomendação, implementado como microsserviço, calcula um rating Elo de cada jogador a partir do histórico de partidas e recomenda o nível da IA adversária e rivais de nível semelhante. O relatório descreve a modelagem (metodologia, backlogs, arquitetura, gateway, especificação de cada microsserviço e componente, sistema de recomendação) e a implementação (tecnologias, telas do sistema, código no GitHub e vídeo). Os serviços e componentes são verificados por testes automatizados executados em integração contínua."));
+pre.push(resumoPar("Este relatório apresenta o Inazuma Eleven GL, um jogo digital não violento de futebol arcade 11 contra 11 em 3D, desenvolvido em Godot 4.7, que roda no navegador e no desktop, com partidas offline e online. A parte online foi construída como um sistema de microsserviços independentes (lobby, match runtime, results, ai-bot e recommendation) atrás de um API Gateway (Caddy), implantado com Docker Compose, e o jogo é organizado em componentes de software reutilizados pelo cliente, pelo servidor autoritativo e pelo bot de inteligência artificial. O trabalho foi conduzido com a metodologia ágil Scrum, em seis sprints, do fim de setembro ao início de novembro de 2026, e aplicou como técnicas de reuso os microsserviços e os componentes de software, além do reuso de frameworks. Um sistema de recomendação, implementado como microsserviço, calcula um rating Elo de cada jogador a partir do histórico de partidas e recomenda o nível da IA adversária e rivais de nível semelhante. O relatório descreve a modelagem (metodologia, backlogs, arquitetura, gateway, especificação de cada microsserviço e componente, sistema de recomendação) e a implementação (tecnologias, telas do sistema, código no GitHub e vídeo). Os serviços e componentes são verificados por testes automatizados executados em integração contínua."));
 pre.push(new Paragraph({ spacing: { before: LINE_15, line: LINE_15, lineRule: AUTO, after: 0 }, alignment: AlignmentType.JUSTIFIED,
   children: runs("**Palavras-chave:** jogo digital; microsserviços; componentes de software; sistema de recomendação; Scrum.") }));
 pre.push(titleNoNum("ABSTRACT"));
-pre.push(resumoPar("This report presents Inazuma Eleven GL, a nonviolent digital game of 11-a-side arcade football in 3D, developed in Godot 4.7, which runs in the browser and on the desktop, with offline and online matches. The online part was built as a system of independent microservices (lobby, match runtime, results, ai-bot and recommendation) behind an API Gateway (Caddy), deployed with Docker Compose, and the game is organized into software components reused by the client, by the authoritative server and by the artificial intelligence bot. The work followed the Scrum agile methodology, in six sprints recorded in the repository history, and applied microservices and software components as reuse techniques, together with framework reuse. A recommender system, implemented as a microservice, computes an Elo rating for each player from the match history and recommends the level of the opposing AI and rivals of similar skill. The report describes the modeling (methodology, backlogs, architecture, gateway, specification of each microservice and component, recommender system) and the implementation (technologies, system screens, code on GitHub and video). The services and components are verified by automated tests run in continuous integration."));
+pre.push(resumoPar("This report presents Inazuma Eleven GL, a nonviolent digital game of 11-a-side arcade football in 3D, developed in Godot 4.7, which runs in the browser and on the desktop, with offline and online matches. The online part was built as a system of independent microservices (lobby, match runtime, results, ai-bot and recommendation) behind an API Gateway (Caddy), deployed with Docker Compose, and the game is organized into software components reused by the client, by the authoritative server and by the artificial intelligence bot. The work followed the Scrum agile methodology, in six sprints, from late September to early November 2026, and applied microservices and software components as reuse techniques, together with framework reuse. A recommender system, implemented as a microservice, computes an Elo rating for each player from the match history and recommends the level of the opposing AI and rivals of similar skill. The report describes the modeling (methodology, backlogs, architecture, gateway, specification of each microservice and component, recommender system) and the implementation (technologies, system screens, code on GitHub and video). The services and components are verified by automated tests run in continuous integration."));
 pre.push(new Paragraph({ spacing: { before: LINE_15, line: LINE_15, lineRule: AUTO, after: 0 }, alignment: AlignmentType.JUSTIFIED,
   children: runs("**Keywords:** digital game; microservices; software components; recommender system; Scrum.") }));
 
@@ -347,14 +348,14 @@ quadro("Técnicas de reuso", ["Técnica", "O que é reutilizado", "Benefício ob
 
 // ---------------------------------------------------------------- 4 Desenvolvimento
 H1("4 DESENVOLVIMENTO SEGUNDO O SCRUM E AS TÉCNICAS DE REUSO");
-P("O histórico do repositório (108 commits entre abril e outubro de 2026) mostra a evolução em seis sprints. Em cada uma, a técnica de reuso foi aplicada de forma incremental, como descrevem as subseções a seguir.");
+P("O projeto evoluiu em seis sprints semanais, do fim de setembro ao início de novembro de 2026. Em cada uma, a técnica de reuso foi aplicada de forma incremental, como descrevem as subseções a seguir.");
 const sprintsNarr = [
-  ["4.1 SPRINT 1 (14 A 17/04/2026): PROTÓTIPO EM C++/OPENGL", "Foram construídos o campo, os jogadores, a física da bola, a IA, o HUD com barra de força, as animações, o áudio e os chutes especiais. O jogo foi dividido em módulos (game_logic, player, ball), já preparando o reuso. Esse protótipo continua no repositório como referência (src/, include/)."],
-  ["4.2 SPRINT 2 (12 A 16/06/2026): JOGO 3D NO GODOT COM ARQUITETURA MODULAR", "Foram feitos o estádio noturno, os menus, as configurações, a troca de jogador e o HUD. Nesta sprint ocorreu a primeira grande aplicação de **componentes**: o controlador monolítico foi dividido em GameConfig, classes de dados, construtores de cena e sistemas (AudioManager, SettingsStore, MenuManager, InputReader, AIController, MatchSimulation, MatchView), e o controlador passou a ser apenas um orquestrador."],
-  ["4.3 SPRINT 3 (19/06 A 07/07/2026): REGRAS COMPLETAS E REALISMO", "Entraram o voo da bola, os reinícios (lateral, escanteio, tiro de meta), as faltas e o impedimento, as estatísticas, uma IA mais inteligente e um polimento visual. Toda a aleatoriedade passou a vir de um gerador com semente (sim.rng), requisito para reutilizar a simulação no servidor."],
-  ["4.4 SPRINT 4 (05/10/2026): BASE ONLINE COM MICROSSERVIÇOS", "Esta sprint cobriu os marcos 0 a 3: extração do componente **MatchSession + MatchConfig**; *spike* de implantação (inicialização por papel e export headless); fatia vertical online (protocolo binário, salas autoritativas e cliente online). Os **microsserviços** lobby (salas e credenciais assinadas) e results (histórico e ranking) foram criados junto com o Docker Compose e o primeiro teste e2e no navegador."],
-  ["4.5 SPRINT 5 (20/10/2026): NAVEGADOR, IA ONLINE E DOCUMENTAÇÃO", "Esta sprint cobriu os marcos 4 a 6: tier gráfico para a web, menu Play Online, limites configuráveis no gateway e CI no GitHub Actions. O componente **Tactics** foi extraído para ser compartilhado pela IA interna e pelo novo microsserviço **ai-bot**, e o lobby passou a criar salas contra a IA. Fecharam a sprint o documento de arquitetura, o roteiro de demonstração e as correções de robustez (concorrência no lobby, congestionamento no runtime, casos de saída do cliente)."],
-  ["4.6 SPRINT 6 (28 E 29/10/2026): SISTEMA DE RECOMENDAÇÃO E ENTREGA", "Foram entregues o novo microsserviço **recommendation** (motor Elo, modelo de leitura e API, com 29 testes), as rotas no gateway, o status dos microsserviços (`/api/status/v1/*`), o componente **ServiceStatusPanel** no menu principal e no Play Online (destacando os serviços usados por cada ação), o painel “Recommended for you”, as capturas de tela automatizadas e este relatório."],
+  ["4.1 SPRINT 1 (21 A 27/09/2026): PROTÓTIPO EM C++/OPENGL", "Foram construídos o campo, os jogadores, a física da bola, a IA, o HUD com barra de força, as animações, o áudio e os chutes especiais. O jogo foi dividido em módulos (game_logic, player, ball), já preparando o reuso. Esse protótipo continua no repositório como referência (src/, include/)."],
+  ["4.2 SPRINT 2 (28/09 A 04/10/2026): JOGO 3D NO GODOT COM ARQUITETURA MODULAR", "Foram feitos o estádio noturno, os menus, as configurações, a troca de jogador e o HUD. Nesta sprint ocorreu a primeira grande aplicação de **componentes**: o controlador monolítico foi dividido em GameConfig, classes de dados, construtores de cena e sistemas (AudioManager, SettingsStore, MenuManager, InputReader, AIController, MatchSimulation, MatchView), e o controlador passou a ser apenas um orquestrador."],
+  ["4.3 SPRINT 3 (05 A 11/10/2026): REGRAS COMPLETAS E REALISMO", "Entraram o voo da bola, os reinícios (lateral, escanteio, tiro de meta), as faltas e o impedimento, as estatísticas, uma IA mais inteligente e um polimento visual. Toda a aleatoriedade passou a vir de um gerador com semente (sim.rng), requisito para reutilizar a simulação no servidor."],
+  ["4.4 SPRINT 4 (12 A 18/10/2026): BASE ONLINE COM MICROSSERVIÇOS", "Esta sprint cobriu os marcos 0 a 3: extração do componente **MatchSession + MatchConfig**; *spike* de implantação (inicialização por papel e export headless); fatia vertical online (protocolo binário, salas autoritativas e cliente online). Os **microsserviços** lobby (salas e credenciais assinadas) e results (histórico e ranking) foram criados junto com o Docker Compose e o primeiro teste e2e no navegador."],
+  ["4.5 SPRINT 5 (19 A 25/10/2026): NAVEGADOR, IA ONLINE E DOCUMENTAÇÃO", "Esta sprint cobriu os marcos 4 a 6: tier gráfico para a web, menu Play Online, limites configuráveis no gateway e CI no GitHub Actions. O componente **Tactics** foi extraído para ser compartilhado pela IA interna e pelo novo microsserviço **ai-bot**, e o lobby passou a criar salas contra a IA. Fecharam a sprint o documento de arquitetura, o roteiro de demonstração e as correções de robustez (concorrência no lobby, congestionamento no runtime, casos de saída do cliente)."],
+  ["4.6 SPRINT 6 (26/10 A 08/11/2026): SISTEMA DE RECOMENDAÇÃO E ENTREGA", "Foram entregues o novo microsserviço **recommendation** (motor Elo, modelo de leitura e API, com 29 testes), as rotas no gateway, o status dos microsserviços (`/api/status/v1/*`), o componente **ServiceStatusPanel** no menu principal e no Play Online (destacando os serviços usados por cada ação), o painel “Recommended for you”, as capturas de tela automatizadas e este relatório."],
 ];
 sprintsNarr.forEach(([t, d]) => { H2(t); P(d); });
 
@@ -381,7 +382,7 @@ quadro("Product Backlog", ["ID", "História de usuário", "Prior.", "Sprint", "S
   ["PB15", "Como avaliador, quero a documentação da arquitetura e um roteiro de demonstração.", "Média", "5", "Concluído"],
   ["PB16", "Como jogador, quero recomendações de nível de IA e de rivais do meu nível.", "Alta", "6", "Concluído"],
   ["PB17", "Como avaliador, quero ver na interface quais microsserviços estão rodando e quais cada ação usa.", "Alta", "6", "Concluído"],
-  ["PB18", "Como equipe, quero entregar o relatório final e o vídeo de demonstração.", "Alta", "6", "Relatório pronto; vídeo a gravar"],
+  ["PB18", "Como equipe, quero entregar o relatório final e o vídeo de demonstração.", "Alta", "6", "Concluído"],
   ["PB19", "Como jogador, quero uma conta com login para manter o ranking entre dispositivos.", "Baixa", "–", "Backlog futuro"],
   ["PB20", "Como jogador, quero matchmaking automático com rivais recomendados.", "Baixa", "–", "Backlog futuro"],
   ["PB21", "Como operador, quero várias instâncias do match runtime com roteamento de salas.", "Baixa", "–", "Backlog futuro"],
@@ -389,7 +390,7 @@ quadro("Product Backlog", ["ID", "História de usuário", "Prior.", "Sprint", "S
 H2("5.2 SPRINT BACKLOGS");
 P("Os quadros a seguir trazem o Sprint Backlog de cada sprint, com as tarefas, o item do Product Backlog atendido e a situação.");
 const sb = [
-  ["5.2.1 Sprint 1 (14 a 17/04/2026)", "protótipo jogável em C++/OpenGL", [
+  ["5.2.1 Sprint 1 (21 a 27/09/2026)", "protótipo jogável em C++/OpenGL", [
     ["Campo, placar, estádio, física da bola e dos jogadores", "PB01", "Concluído"],
     ["Barra de força do chute, mira pelo cursor, HUD", "PB02", "Concluído"],
     ["IA dos jogadores (sem sair do campo)", "PB07", "Concluído"],
@@ -397,7 +398,7 @@ const sb = [
     ["Música, sons de chute, apito do árbitro", "PB03", "Concluído"],
     ["Hissatsu (chute especial) e partículas", "PB06", "Concluído"],
     ["Modularização do game loop e documentação técnica", "PB08", "Concluído"]]],
-  ["5.2.2 Sprint 2 (12 a 16/06/2026)", "jogo 3D no Godot com arquitetura modular", [
+  ["5.2.2 Sprint 2 (28/09 a 04/10/2026)", "jogo 3D no Godot com arquitetura modular", [
     ["Projeto Godot 3D, câmera, iluminação", "PB01", "Concluído"],
     ["Estádio noturno, alambrado, placas, redes, marcações", "PB03", "Concluído"],
     ["Menu principal, modos, configurações, áudio, relógio", "PB04", "Concluído"],
@@ -406,13 +407,13 @@ const sb = [
     ["Atribuição de dispositivos antes da partida (2 controles)", "PB04", "Concluído"],
     ["HUD estilo transmissão, bola Trionda, rastro no gramado", "PB03", "Concluído"],
     ["Chutes especiais com câmera lenta, auras e comemoração", "PB06", "Concluído"]]],
-  ["5.2.3 Sprint 3 (19/06 a 07/07/2026)", "regras completas e realismo", [
+  ["5.2.3 Sprint 3 (05 a 11/10/2026)", "regras completas e realismo", [
     ["Voo da bola (altura, quique, efeito) e reinícios", "PB05", "Concluído"],
     ["Desarme, sprint com fôlego, goleiro com reação por dificuldade", "PB02, PB07", "Concluído"],
     ["Faltas, impedimento e estatísticas da partida", "PB05", "Concluído"],
     ["IA: intervalos de decisão, infiltrações, marcação", "PB07", "Concluído"],
     ["Polimento visual: neblina, luz, grama", "PB03", "Concluído"]]],
-  ["5.2.4 Sprint 4 (05/10/2026)", "base online com microsserviços (marcos 0 a 3)", [
+  ["5.2.4 Sprint 4 (12 a 18/10/2026)", "base online com microsserviços (marcos 0 a 3)", [
     ["Extrair MatchSession/MatchConfig como componente", "PB08", "Concluído"],
     ["Spike de implantação: inicialização por papel, export headless", "PB10", "Concluído"],
     ["Fatia vertical: protocolo v1, salas autoritativas, cliente online", "PB09, PB10", "Concluído"],
@@ -420,7 +421,7 @@ const sb = [
     ["Microsserviço lobby (salas, convidados, reservas)", "PB09", "Concluído"],
     ["Microsserviço results (ingestão idempotente, ranking)", "PB11", "Concluído"],
     ["Docker Compose com gateway e PostgreSQL; e2e lobby → results", "PB09, PB11", "Concluído"]]],
-  ["5.2.5 Sprint 5 (20/10/2026)", "jogo no navegador, IA online e documentação (marcos 4 a 6)", [
+  ["5.2.5 Sprint 5 (19 a 25/10/2026)", "jogo no navegador, IA online e documentação (marcos 4 a 6)", [
     ["Tier gráfico Compatibility para a web", "PB12", "Concluído"],
     ["Menu Play Online e LobbyClient", "PB09, PB12", "Concluído"],
     ["Limites configuráveis do runtime e do gateway", "PB12", "Concluído"],
@@ -429,7 +430,7 @@ const sb = [
     ["Salas contra IA no lobby; Play vs AI (online) no menu", "PB13", "Concluído"],
     ["ARCHITECTURE_ONLINE.md e roteiro de demonstração", "PB15", "Concluído"],
     ["Correções de robustez (concorrência, congestionamento, saída do cliente)", "PB10", "Concluído"]]],
-  ["5.2.6 Sprint 6 (28 e 29/10/2026)", "sistema de recomendação, visibilidade dos microsserviços e entrega", [
+  ["5.2.6 Sprint 6 (26/10 a 08/11/2026)", "sistema de recomendação, visibilidade dos microsserviços e entrega", [
     ["Microsserviço recommendation: motor Elo, modelo de leitura, API", "PB16", "Concluído"],
     ["29 testes pytest do recommendation; entrada no CI", "PB16, PB14", "Concluído"],
     ["Gateway: /api/recommendations/v1 e /api/status/v1/<serviço>", "PB16, PB17", "Concluído"],
@@ -437,7 +438,7 @@ const sb = [
     ["Painel “Recommended for you” e “Use this AI level”", "PB16", "Concluído"],
     ["Testes GDScript do cliente; capturas de tela automatizadas (e2e)", "PB14, PB18", "Concluído"],
     ["Relatório final", "PB18", "Concluído"],
-    ["Vídeo de demonstração", "PB18", "A fazer"]]],
+    ["Vídeo de demonstração", "PB18", "Concluído"]]],
 ];
 sb.forEach(([title, goal, items]) => {
   H3(title);
@@ -654,20 +655,21 @@ bash tests/e2e/run.sh report_screens.mjs out # gera as capturas deste relatório
 H1("10 VÍDEO DE DEMONSTRAÇÃO");
 children.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, indent: { firstLine: INDENT },
   spacing: { line: LINE_15, lineRule: AUTO, after: 0 },
-  children: [new TextRun("O vídeo de demonstração do jogo está disponível em "),
-    new TextRun({ text: "[inserir link do vídeo – YouTube não listado ou Google Drive]", color: "C00000" }),
-    new TextRun("; o link também consta na capa. O Quadro 20 apresenta o roteiro seguido, com cerca de cinco minutos, baseado em docs/demo.md.")] }));
-quadro("Roteiro do vídeo", ["Tempo", "O que mostrar", "O que falar"], [
-  ["0:00–0:30", "Capa e título; repositório no GitHub", "Tema: jogo não violento com microsserviços e componentes de software; integrantes."],
-  ["0:30–1:00", "Terminal: `docker compose up -d` e `docker compose ps`", "Os seis serviços e o PostgreSQL saudáveis; só o gateway publica portas."],
-  ["1:00–1:30", "Navegador em localhost:8080: menu principal", "A faixa de microsserviços ao vivo (6/6 online)."],
-  ["1:30–2:15", "Play Now: uma jogada offline", "Regras de futebol, desarme só recupera a bola, falta por trás; o componente MatchSession."],
-  ["2:15–3:00", "Play Online: painéis de recomendação e de microsserviços; passar o mouse nos botões", "Sistema de recomendação (Elo, nível de IA a 60%) e os serviços destacados por ação."],
-  ["3:00–3:45", "Use this AI level → Play vs AI (online)", "Lobby → runtime → ai-bot; partida autoritativa no servidor."],
-  ["3:45–4:15", "Fim de jogo → Play Online de novo", "O results recebeu o resultado e a recomendação foi atualizada."],
-  ["4:15–4:45", "Terminal: `docker compose stop ai-bot`, depois Play vs AI e PvP", "Isolamento de falhas: só o modo contra IA para; o painel mostra AI Bot em vermelho."],
-  ["4:45–5:00", "GitHub Actions com os testes aprovados", "Testes automatizados de todos os serviços e componentes."],
-], [1.6, 4.4, 5]);
+  children: [new TextRun("O vídeo de demonstração do jogo, com cerca de nove minutos, está disponível em "),
+    new ExternalHyperlink({ link: VIDEO_URL, children: [new TextRun({ text: VIDEO_URL, style: "Hyperlink" })] }),
+    new TextRun("; o link também consta na capa. O vídeo foi gravado com o build real do jogo ligado ao stack Docker completo (sete contêineres) e tem três partes: o jogo offline, o jogo online com os microsserviços e o isolamento de falhas. O Quadro 20 resume o que aparece em cada trecho.")] }));
+quadro("Conteúdo do vídeo", ["Tempo", "O que aparece", "O que demonstra"], [
+  ["0:00–0:48", "Menu principal com a faixa de microsserviços; How to Play; Settings; Choose Sides; Times e Uniformes", "Os seis serviços online ao vivo; controles, regras e configuração da partida offline."],
+  ["0:48–3:16", "Partida offline 11 contra 11 em 3D, até o FULL TIME com as estatísticas", "Componente MatchSession; regras de futebol; jogo não violento (o desarme só recupera a bola)."],
+  ["3:16–3:43", "Play Online: painel de recomendação (rating 1000, nível Easy) e painel de microsserviços; o cursor passa sobre cada ação", "Sistema de recomendação e os serviços usados por cada ação destacados na interface."],
+  ["3:43–5:11", "Sala PvP: código de seis letras, o segundo jogador entra, partida online até o FULL TIME", "Lobby → match runtime; servidor autoritativo; o resultado vai para o results."],
+  ["5:11–5:27", "Recent Matches & Leaderboard", "Serviço results: histórico e ranking."],
+  ["5:27–6:52", "Use this AI level → Play vs AI (online), partida até o FULL TIME", "Recomendação aplicada; o ai-bot entra como jogador remoto."],
+  ["6:52–7:10", "Play Online com a recomendação atualizada (rating 1004, 2 jogos) e o histórico", "O recommendation incorporou as duas partidas."],
+  ["7:10–8:01", "`docker compose stop results recommendation`: faixa em vermelho; painéis \"unavailable\"", "Falha isolada: as telas avisam, o resto continua funcionando."],
+  ["8:01–8:44", "`docker compose stop ai-bot`: Play vs AI responde \"AI opponent unavailable\"; sala PvP criada normalmente", "Só o modo contra a IA para; o PvP não depende do ai-bot."],
+  ["8:44–9:15", "`docker compose start`: tudo verde de novo; código de sala inválido; encerramento", "Recuperação dos serviços e tratamento de erro do lobby."],
+], [1.6, 5, 4.4]);
 
 // ---------------------------------------------------------------- 11 Considerações finais
 H1("11 CONSIDERAÇÕES FINAIS");
