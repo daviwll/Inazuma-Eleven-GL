@@ -283,6 +283,8 @@ func show_for_state(state: int) -> void:
 	var active: Control = null
 	var page := ""
 	match state:
+		GameConfig.GameState.INTRO:
+			pass
 		GameConfig.GameState.MENU:
 			active = menu_panels.main
 			page = "main"

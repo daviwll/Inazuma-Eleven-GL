@@ -33,13 +33,14 @@ var hud: MatchHud
 var audio: AudioManager
 var settings: SettingsStore
 var menu: MenuManager
+var intro: IntroManager
 var setup: MatchSetup
 var session: MatchSession
 var sim: MatchSimulation   # session.sim, read by the view/HUD for rendering
 var view: MatchView
 
-# UI state machine (menus / pause); the match flow itself is session.phase.
-var game_state := GameConfig.GameState.MENU
+# UI state machine (intro / menus / pause); the match flow itself is session.phase.
+var game_state := GameConfig.GameState.INTRO
 var prev_menu_state := GameConfig.GameState.MENU
 
 # Lineup chosen on the Choose Sides screen, reused by Restart/Rematch.
@@ -127,6 +128,13 @@ func _ready() -> void:
 	menu.controller = self
 	menu.settings = settings
 	menu.build_menus()
+	intro = IntroManager.new()
+	add_child(intro)
+	intro.controller = self
+	intro.settings = settings
+	intro.audio = audio
+	intro._build()
+	intro.finished.connect(_on_intro_finished)
 	setup = MatchSetup.new()
 	add_child(setup)
 	setup.controller = self
@@ -137,9 +145,14 @@ func _ready() -> void:
 	Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	if LaunchArgs.flag("latency"):
 		_latency_probe = LatencyProbe.new()
-	_set_game_state(GameConfig.GameState.MENU)
+	_set_game_state(GameConfig.GameState.INTRO)
+	intro.start()
 	print("Inazuma Eleven 3D environment ready")
 	_start_online_from_launch_args()
+
+func _on_intro_finished() -> void:
+	if game_state == GameConfig.GameState.INTRO:
+		_set_game_state(GameConfig.GameState.MENU)
 
 func _exit_tree() -> void:
 	session.dispose()
@@ -388,6 +401,8 @@ func _on_goal(ev: Dictionary) -> void:
 	audio.play_crowd_roar()
 
 func _input(event: InputEvent) -> void:
+	if game_state == GameConfig.GameState.INTRO:
+		return
 	_note_input_device(event)
 	if event.is_action_pressed("ui_cancel"):
 		match game_state:
